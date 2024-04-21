@@ -9,15 +9,24 @@ export class UserInteractor implements IUserInteractor{
     constructor(repository:IUserRepository) {
         this.repostitory=repository
     }
+ async checkotp(value: number): Promise<boolean> {
+    return await this.repostitory.otpcheck(value)
+  }
+ async sendmail(email: string): Promise<string> {
+   return await this.repostitory.sendmail(email)
+  }
+  async  jwt(payload: User): Promise<string> {
+        return this.repostitory.jwt(payload)
+    }
  async checkpass(email:string,password: string) {
     return this.repostitory.passwordmatch(email,password)
   }
 
-  async  login(email: string) {
+  async  login(email: string):Promise<User | null> {
         return this.repostitory.findByOne(email)
     }
-  async  signup(username: string, email: string, password: string, dateofbirth: Date): Promise<User> {
-       return this.repostitory.create(username,email,password,dateofbirth)
+  async  signup(username: string, email: string, password: string, dateofbirth: Date,isblocked:boolean): Promise<User> {
+       return this.repostitory.create(username,email,password,dateofbirth,isblocked)
     }
 
 }

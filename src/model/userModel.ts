@@ -5,7 +5,8 @@ export interface UserDocument extends Document{
     email:string
     password:string
     role:string
-    dateofbirth:Date
+    dateofbirth:Date,
+    isblocked:boolean
 }
 
 const UserSchema:Schema<UserDocument>=new Schema({
@@ -13,7 +14,8 @@ const UserSchema:Schema<UserDocument>=new Schema({
     email:{type:String,required:true},
     password:{type:String,required:true},
     role:{type:String,required:true,default:'user'},
-    dateofbirth:{type:Date,required:true}
+    dateofbirth:{type:Date,required:true},
+    isblocked:{type:Boolean,required:true}
 })
 
 export const UserModel=mongoose.model<UserDocument>('user',UserSchema)

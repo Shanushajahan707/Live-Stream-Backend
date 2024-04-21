@@ -5,6 +5,7 @@ export class User {
         public readonly password: string,
         public readonly role: string = 'user', 
         public readonly dateofbirth: Date,
+        public readonly isblocked:boolean,
         public readonly _id?: string 
     ) {}
 }

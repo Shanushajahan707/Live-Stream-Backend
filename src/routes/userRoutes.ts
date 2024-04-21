@@ -11,5 +11,6 @@ const controller=new UserController(interactor)
 
 router.post('/loginuser',controller.onlogin.bind(controller)) 
 router.post('/signup',controller.onsignup.bind(controller))
-
+router.post('/otpverify',controller.oncheckotp.bind(controller))
+router.get('/resendotp',controller.resendotp.bind(controller))
 export default router;
