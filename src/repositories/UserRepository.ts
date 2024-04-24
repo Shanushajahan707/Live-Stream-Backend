@@ -16,6 +16,7 @@ export class UserRepository implements IUserRepository{
 
 
  async otpcheck(value: number): Promise<boolean> {
+    try {
       const enteredOTPString = Object.values(value).join('');
       console.log('Entered OTP:', parseInt(enteredOTPString));   
        if (!this.jwtotp) {
@@ -27,10 +28,14 @@ export class UserRepository implements IUserRepository{
         console.log('Stored OTP:', storedOTP);
         return storedOTP == enteredOTPString
 
+    } catch (error) {
+      console.log("errror",error);
+      throw error
+    }
     }
   async  sendmail(email: string): Promise<string> {
-
-    const sendOtpEmail = async (email: string, otp: number): Promise<string> => {
+    try {
+      const sendOtpEmail = async (email: string, otp: number): Promise<string> => {
         return new Promise((resolve, reject) => {
           const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -82,11 +87,16 @@ export class UserRepository implements IUserRepository{
       this.jwtotp=jwt.sign({otp},'otpvalue',{expiresIn:'1m'})
       const mailSent = await sendOtpEmail(email, otp);
       return mailSent;
+    } catch (error) {
+      console.log('error',error);
+      throw error
+    } 
     }
   
 
   async  jwt(payload: User) {
-    console.log('here the jwt ',payload);
+    try {
+      console.log('here the jwt ',payload);
     const plainPayload = {
         _id: payload._id,
         username: payload.username,
@@ -98,30 +108,49 @@ export class UserRepository implements IUserRepository{
     };
         const token=jwt.sign(plainPayload,'loginsecret')
         return token
+    } catch (error) {
+      console.log('error',error);
+      throw error
+    }
     }
 async  passwordmatch(email:string,password: string) {
-    const user = await UserModel.findOne({ email });
+    try {
+      const user = await UserModel.findOne({ email });
    if(user){
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     return isPasswordMatch
    }
+    } catch (error) {
+      console.log('error',error);
+      throw error
+    }
 }
    async findByOne(email: string):Promise<User | null>{
-    const existingUserDocument = await UserModel.findOne({ email:email });
+    try {
+      const existingUserDocument = await UserModel.findOne({ email:email });
     return existingUserDocument
+    } catch (error) {
+      console.log('error',error);
+      throw error
+    }
     }
  
    async create(username: string, email: string, password: string, dateofbirth: Date,isblocked:boolean): Promise<User> {
+       try {
         const user={
-            username:username,
-            email:email,
-            password:password,
-            role:'user',
-            dateofbirth:dateofbirth,
-            isblocked:isblocked
-        }
-        const newuser = await UserModel.create(user);
-        console.log(newuser,'created');
-        return newuser
+          username:username,
+          email:email,
+          password:password,
+          role:'user',
+          dateofbirth:dateofbirth,
+          isblocked:isblocked
+      }
+      const newuser = await UserModel.create(user);
+      console.log(newuser,'created');
+      return newuser
+       } catch (error) {
+        console.log('error',error);
+        throw error
+       }
     }
 }
