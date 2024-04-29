@@ -1,14 +1,14 @@
 import app from './app';
 import dotenv from 'dotenv';
 import { connectDatabase } from './providers/database';
-import routes from './routes/userRoutes';
-
+import userRoutes from './routes/userRoutes';
+import adminRoutes from './routes/adminRoutes'
 dotenv.config();
 connectDatabase()
 const port = process.env.PORT || 3001;
 
-app.use('/', routes);
-
+app.use('/', userRoutes);
+app.use('/',adminRoutes)
 
 
 app.listen(port, () => {

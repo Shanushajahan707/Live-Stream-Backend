@@ -1,6 +1,7 @@
 import mongoose ,{Schema,Document} from 'mongoose'
 
 export interface UserDocument extends Document{
+    googleId?:number
     username:string
     email:string
     password:string
@@ -10,12 +11,13 @@ export interface UserDocument extends Document{
 }
 
 const UserSchema:Schema<UserDocument>=new Schema({
-    username:{type:String,required:true},
-    email:{type:String,required:true},
-    password:{type:String,required:true},
-    role:{type:String,required:true,default:'user'},
-    dateofbirth:{type:Date,required:true},
-    isblocked:{type:Boolean,required:true}
+    googleId:{type:Number},
+    username:{type:String},
+    email:{type:String},
+    password:{type:String},
+    role:{type:String,default:'user'},
+    dateofbirth:{type:Date},
+    isblocked:{type:Boolean}
 })
 
 export const UserModel=mongoose.model<UserDocument>('user',UserSchema)

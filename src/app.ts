@@ -3,8 +3,8 @@ import cors from 'cors';
 import bodyparser from 'body-parser'
 import Session  from 'express-session';
 
-import '../src/Auth/passport';
-
+import './auth/passport';
+import passport from 'passport';
 
 const app = express();
 app.use(cors());
@@ -14,5 +14,8 @@ app.use(Session({
     saveUninitialized:true,
     secret:'secret'
 }))
+app.use(passport.initialize())
+app.use(passport.session())
+
 
 export default app;
