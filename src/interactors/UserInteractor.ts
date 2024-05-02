@@ -13,54 +13,53 @@ export class UserInteractor implements IUserInteractor {
   constructor(repository: IUserRepository) {
     this._repostitory = repository;
   }
-  async googleFindOne(email: string): Promise<googleUser | null> {
+  googleFindOne = async (email: string): Promise<googleUser | null> => {
     try {
-       const existingUserDoc = await this._repostitory.findByOne(email);
-   
-       // Check if the document exists
-       if (!existingUserDoc) {
-         return null;
-       }
-   
-       // Map the MongoDB document to your googleUser type
-       const existingUser: googleUser = {
-         googleId: existingUserDoc.googleId as unknown as string,
-         username: existingUserDoc.username,
-         email: existingUserDoc.email,
-        _id:existingUserDoc._id
-           };
-   
-       return existingUser;
+      const existingUserDoc = await this._repostitory.findByOne(email);
+
+      // Check if the document exists
+      if (!existingUserDoc) {
+        return null;
+      }
+
+      // Map the MongoDB document to your googleUser type
+      const existingUser: googleUser = {
+        googleId: existingUserDoc.googleId as unknown as string,
+        username: existingUserDoc.username,
+        email: existingUserDoc.email,
+        _id: existingUserDoc._id,
+      };
+
+      return existingUser;
     } catch (error) {
-       console.log("error", error);
-       throw error;
+      console.log("error", error);
+      throw error;
     }
-   }
-   
-   
-  async googleUserCreation(data: googleUser): Promise<googleUser> {
+  };
+
+  googleUserCreation = async (data: googleUser): Promise<googleUser> => {
     try {
       return await this._repostitory.googleUserCreation(data);
     } catch (error) {
       console.log("eror", error);
       throw error;
     }
-  }
-  async googleFindById(id: string): Promise<googleUser | null> {
+  };
+  googleFindById = async (id: string): Promise<googleUser | null> => {
     try {
       return await this._repostitory.googleFindById(id);
     } catch (error) {
-        console.log('here');
+      console.log("here");
       console.log("eror", error);
       throw error;
     }
-  }
+  };
 
-  async googleUserToken(
+  googleUserToken = async (
     googleId: number,
     username: string,
     email: string
-  ): Promise<string> {
+  ): Promise<string> => {
     try {
       const gUser = {
         googleId,
@@ -73,79 +72,71 @@ export class UserInteractor implements IUserInteractor {
       console.log("error", error);
       throw error;
     }
-  }
+  };
 
-  async googleLogin(): Promise<string> {
-    try {
-      return this._repostitory.googleLogin();
-    } catch (error) {
-      console.log("error", error);
-      throw error;
-    }
-  }
-  async isAdmin(email: string): Promise<{ isAdmin: boolean }> {
+  isAdmin = async (email: string): Promise<{ isAdmin: boolean }> => {
     try {
       return this._repostitory.isAdmin(email);
     } catch (error) {
       console.log("error to check isadmin");
       throw error;
     }
-  }
+  };
   // this  method return the another method from the repositry
-  async checkotp(
+  checkotp = async (
     value: number
-  ): Promise<{ isValidOTP: boolean; isExpired: boolean }> {
+  ): Promise<{ isValidOTP: boolean; isExpired: boolean }> => {
     try {
       return await this._repostitory.otpcheck(value);
     } catch (error) {
       console.error("Error in checkotp:", error);
       throw error;
     }
-  }
+  };
   // this  method return if the mail sent or not
-  async sendmail(email: string): Promise<string> {
+  sendmail = async (email: string): Promise<string> => {
     try {
       return await this._repostitory.sendmail(email);
     } catch (error) {
       console.error("Error in sendmail:", error);
       throw error;
     }
-  }
+  };
   // this  method return to sign the jwt token
-  async jwt(payload: User): Promise<string> {
+  jwt = async (payload: User): Promise<string> => {
     try {
       return await this._repostitory.jwt(payload);
     } catch (error) {
       console.error("Error in jwt:", error);
       throw error;
     }
-  }
+  };
   // return the matching password
-  async checkpass(email: string, password: string) {
+  checkpass = async (email: string, password: string) => {
     try {
       return await this._repostitory.passwordmatch(email, password);
     } catch (error) {
       console.error("Error in checkpass:", error);
       throw error;
     }
-  }
+  };
   //return user exist in db
-  async login(email: string): Promise<User | null> {
+  login = async (email: string): Promise<User | null> => {
     try {
       return await this._repostitory.findByOne(email);
     } catch (error) {
       console.error("Error in login:", error);
       throw error;
     }
-  }
+  };
   //return if the user inserted
-  async signup(
+  signup = async (
     username: string,
     email: string,
     password: string,
     dateofbirth: Date,
     isblocked: boolean
-  ): Promise<User> {
+  ): Promise<User> => {
     try {
       return await this._repostitory.create(
         username,
@@ -158,5 +149,5 @@ export class UserInteractor implements IUserInteractor {
       console.error("Error in signup:", error);
       throw error;
     }
-  }
+  };
 }

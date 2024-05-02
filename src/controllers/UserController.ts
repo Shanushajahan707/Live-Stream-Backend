@@ -9,25 +9,14 @@ import { validAge } from "../utils/validAge";
 
 dotenv.config();
 //set enum for each reponse message
-enum ResponseMessage {
-  noUserDataProvided = "No User Data Provided",
-  emailAndPasswordRequired = "password or email is required",
-  invalidEmail = "Invalid email format",
-  invalidPassword = "Invalid password format",
-  passwordDontMatch = "Password Doesn't Match",
-  successlogin = "Sucess Login",
-  accountBlocked = "Account Blocked",
-  userNotFound = "User not found",
-  singupFieldRequired = "Username, email, password and dateofbirth are required",
-  emailExist = "email Already exist",
-  validAge = "You must be at least 18 years old to sign up.",
-  checkOtp = "Enter the OTP properly",
-  userDataRegistered = "User Data registered",
-  errorWhileInsertion = "Error while inserting user data",
-  invalidOtp = "Invalid OTP",
-  otpExpired = "Otp Expired",
-  resendOtpSuccess = "Resend Otp successfully",
-  resendOtpError = "Error Creating Otp",
+enum ResponseStatus {
+  OK = 200,
+  Created = 201,
+  Accepted = 202,
+  BadRequest = 400,
+  Unauthorized = 401,
+  Forbidden = 403,
+  NotFound = 404,
 }
 
 export class UserController {
@@ -40,13 +29,13 @@ export class UserController {
   }
 
   //logn funcitonalities and call the interactor
-  async onLogin(req: Request, res: Response, next: NextFunction) {
+  onLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       console.log(req.body);
       if (!req.body) {
         return res
-          .status(400)
-          .json({ message: ResponseMessage.noUserDataProvided });
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "No User Data Provided" });
       }
 
       const user = {
@@ -56,12 +45,14 @@ export class UserController {
 
       if (!user.password || !user.email) {
         return res
-          .status(400)
-          .json({ message: ResponseMessage.emailAndPasswordRequired });
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "password or email is required" });
       }
 
       if (!isValidEmail(user.email)) {
-        return res.status(400).json({ message: ResponseMessage.invalidEmail });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Invalid email format" });
       }
 
       const userExist = await this._interactor.login(user.email);
@@ -74,8 +65,8 @@ export class UserController {
 
         if (!check) {
           return res
-            .status(400)
-            .json({ message: ResponseMessage.passwordDontMatch });
+            .status(ResponseStatus.BadRequest)
+            .json({ message: "Password Doesn't Match" });
         }
 
         const isAdmin = await this._interactor.isAdmin(user.email);
@@ -85,49 +76,53 @@ export class UserController {
         if (userdata) {
           if (userdata.isblocked) {
             return res
-              .status(400)
-              .json({ message: ResponseMessage.accountBlocked });
+              .status(ResponseStatus.BadRequest)
+              .json({ message: "Account Blocked" });
           }
           const token = await this._interactor.jwt(userdata);
           return res
-            .status(200)
-            .json({ message: ResponseMessage.successlogin, token, isAdmin });
+            .status(ResponseStatus.Accepted)
+            .json({ message: "Sucess Login", token, isAdmin });
         }
       } else {
-        return res.status(400).json({ message: ResponseMessage.userNotFound });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "User not found" });
       }
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   //signup fucntionalities and call the interactor
-  async onSignup(req: Request, res: Response, next: NextFunction) {
+  onSignup = async (req: Request, res: Response, next: NextFunction) => {
     try {
       console.log(req.body);
 
       if (!req.body) {
         return res
-          .status(400)
-          .json({ message: ResponseMessage.noUserDataProvided });
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "No User Data Provided" });
       }
 
       const { username, email, password, dateofbirth } = req.body;
 
       if (!username || !email || !password || !dateofbirth) {
-        return res
-          .status(400)
-          .json({ message: ResponseMessage.singupFieldRequired });
+        return res.status(ResponseStatus.BadRequest).json({
+          message: "Username, email, password and dateofbirth are required",
+        });
       }
 
       if (!isValidEmail(email)) {
-        return res.status(400).json({ message: ResponseMessage.invalidEmail });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Invalid email format" });
       }
 
       if (!isValidPassword(password)) {
         return res
-          .status(400)
-          .json({ message: ResponseMessage.invalidPassword });
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Invalid password format" });
       }
 
       const hashedPassword = bcrypt.hashSync(password, 10);
@@ -144,30 +139,38 @@ export class UserController {
       const data = await this._interactor.login(this.userdatas.email);
 
       if (data) {
-        return res.status(400).json({ message: ResponseMessage.emailExist });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "email Already exist" });
       }
 
       const dob = new Date(dateofbirth);
       const age = validAge(dob);
 
       if (age < 18) {
-        return res.status(400).json({ message: ResponseMessage.validAge });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "You must be at least 18 years old to sign up" });
       }
 
       const mailsent = await this._interactor.sendmail(this.userdatas.email);
       console.log("sent ", mailsent);
 
-      return res.status(200).json({ message: `Check ${this.userdatas.email}` });
+      return res
+        .status(ResponseStatus.OK)
+        .json({ message: `Check ${this.userdatas.email}` });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   //otp fucntionalities and call the interactor
-  async onCheckOtp(req: Request, res: Response, next: NextFunction) {
+  onCheckOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.body) {
-        return res.status(400).json({ message: ResponseMessage.checkOtp });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Enter the OTP properly" });
       }
 
       const otpCheckResult = await this._interactor.checkotp(req.body);
@@ -176,7 +179,9 @@ export class UserController {
         console.log("valid otp controler", otpCheckResult.isValidOTP);
         if (otpCheckResult.isExpired) {
           console.log("is expired controoler", otpCheckResult.isExpired);
-          return res.status(400).json({ message: ResponseMessage.otpExpired });
+          return res
+            .status(ResponseStatus.BadRequest)
+            .json({ message: "Otp Expired" });
         }
         const insert = await this._interactor.signup(
           this.userdatas.username,
@@ -187,23 +192,25 @@ export class UserController {
         );
         if (insert) {
           return res
-            .status(201)
-            .json({ message: ResponseMessage.userDataRegistered });
+            .status(ResponseStatus.Created)
+            .json({ message: "User Data registered" });
         } else {
           return res
-            .status(400)
-            .json({ message: ResponseMessage.errorWhileInsertion });
+            .status(ResponseStatus.BadRequest)
+            .json({ message: "Error while inserting user data" });
         }
       } else {
-        return res.status(400).json({ message: ResponseMessage.invalidOtp });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Invalid OTP" });
       }
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   //resend functionalities and call the interctor
-  async resendOtp(req: Request, res: Response, next: NextFunction) {
+  resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       console.log("req.body.form: ", req.body.form);
       const userData = req.body.form;
@@ -216,23 +223,23 @@ export class UserController {
         if (mailsent) {
           console.log("sent", mailsent);
           return res
-            .status(200)
-            .json({ message: ResponseMessage.resendOtpSuccess });
+            .status(ResponseStatus.OK)
+            .json({ message: "Resend Otp successfully" });
         } else {
           return res
-            .status(400)
-            .json({ message: ResponseMessage.resendOtpError });
+            .status(ResponseStatus.BadRequest)
+            .json({ message: "Error Creating Otp" });
         }
       } else {
         return res
-          .status(400)
-          .json({ message: ResponseMessage.resendOtpError });
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Error Creating Otp" });
       }
     } catch (error) {
       next(error);
     }
-  }
-  async test(req: Request, res: Response, next: NextFunction) {
+  };
+  test = async (req: Request, res: Response, next: NextFunction) => {
     try {
       console.log(
         "user data for mthe test routes extracted by the token",
@@ -241,33 +248,27 @@ export class UserController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-    async googleCallback(req: Request, res: Response, next: NextFunction){
-      try {
-        console.log('user data');
-        if(req.user){
-          const message="Google Authentication Success";
-          const user=JSON.stringify(req.user)
-          const { googleId, username, email } = JSON.parse(user);
-          
-          const token=await this._interactor.googleUserToken(googleId,username,email)
-          console.log('token',token);
-          res.cookie('authResponse',JSON.stringify({message,user,token}))
-          res.redirect('http://localhost:4200/login')
-        }
-      } catch (error) {
-        next(error)
-      }
-    }
-
-  async googleUsers(req: Request, res: Response, next: NextFunction) {
+  googleCallback = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const googleuser = await this._interactor.googleLogin();
-      console.log("inserted", googleuser);
+      console.log("user data");
+      if (req.user) {
+        const message = "Google Authentication Success";
+        const user = JSON.stringify(req.user);
+        const { googleId, username, email } = JSON.parse(user);
+
+        const token = await this._interactor.googleUserToken(
+          googleId,
+          username,
+          email
+        );
+        console.log("token", token);
+        res.cookie("authResponse", JSON.stringify({ message, user, token }));
+       return res.redirect("http://localhost:4200/login");
+      }
     } catch (error) {
       next(error);
     }
-  }
-  
+  };
 }

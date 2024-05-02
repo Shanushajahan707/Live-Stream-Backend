@@ -1,37 +1,51 @@
-import { Request,Response,NextFunction } from "express"
-import { IAdminInteractor } from "../providers/interfaces/IAdminInteractor"
+import { Request, Response, NextFunction } from "express";
+import { IAdminInteractor } from "../providers/interfaces/IAdminInteractor";
 
-export class AdminController{
-    
-    private _interactor:IAdminInteractor
-    constructor( interactor:IAdminInteractor){
-        this._interactor=interactor
-    }
+enum ResponseStatus {
+  OK = 200,
+  Created = 201,
+  Accepted = 202,
+  BadRequest = 400,
+  Unauthorized = 401,
+  Forbidden = 403,
+  NotFound = 404,
+}
 
-   async onGetUser(req:Request,res:Response,next:NextFunction){
-        try {
-          const users=  await this._interactor.getUsers()
-          if(users){
-            return res.status(200).json({message:"Successfully get all the users",users})
-          }
-            console.log('users',users);
-        } catch (error) {
-            next(error)
-        }
+export class AdminController {
+  private _interactor: IAdminInteractor;
+  constructor(interactor: IAdminInteractor) {
+    this._interactor = interactor;
+  }
+
+  onGetUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const users = await this._interactor.getUsers();
+      if (users) {
+        return res
+          .status(ResponseStatus.OK)
+          .json({ message: "Successfully get all the users", users });
+      }
+      console.log("users", users);
+    } catch (error) {
+      next(error);
     }
-    async onBlockUser(req:Request,res:Response,next:NextFunction){
-        try {
-            console.log('id is',req.params.id);
-            const status=await this._interactor.blockUser(req.params.id)
-            if(status){
-                console.log('success');
-                res.status(200).json({message:"Successfully Updated"})
-            }else{
-                res.status(400).json({message:"Error toggling user status"})
-                
-            }
-        } catch (error) {
-            next(error)
-        }
+  };
+  onBlockUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      console.log("id is", req.params.id);
+      const status = await this._interactor.blockUser(req.params.id);
+      if (status.update) {
+        console.log("success");
+        res
+          .status(ResponseStatus.Accepted)
+          .json({ message: "Successfully Updated",user:status.user });
+      } else {
+        res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Error toggling user status" });
+      }
+    } catch (error) {
+      next(error);
     }
+  };
 }

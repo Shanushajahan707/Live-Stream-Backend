@@ -6,42 +6,40 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
 dotenv.config();
 
 export class UserRepository implements IUserRepository {
   private _jwtotp: string | null = null;
 
-  async googleFindOne(email: string): Promise<googleUser | null> {
+  googleFindOne = async (email: string): Promise<googleUser | null> => {
     try {
-       const existingUserDocument = await UserModel.findOne({ email: email });
-   
-       if (!existingUserDocument) {
-         return null;
-       }
-   
-       const existingUser: googleUser = {
-         googleId: existingUserDocument.googleId as unknown as string,
-         username: existingUserDocument.username,
-         email: existingUserDocument.email,
-         _id:existingUserDocument._id
-       };
-   
-       return existingUser;
+      const existingUserDocument = await UserModel.findOne({ email: email });
+
+      if (!existingUserDocument) {
+        return null;
+      }
+
+      const existingUser: googleUser = {
+        googleId: existingUserDocument.googleId as unknown as string,
+        username: existingUserDocument.username,
+        email: existingUserDocument.email,
+        _id: existingUserDocument._id,
+      };
+
+      return existingUser;
     } catch (error) {
-       console.log("error", error);
-       throw error;
+      console.log("error", error);
+      throw error;
     }
-   }
-   
-  async googleUserCreation(data: googleUser): Promise<googleUser> {
+  };
+
+  googleUserCreation = async (data: googleUser): Promise<googleUser> => {
     try {
       const googleuserdata = {
         googleId: data.googleId,
         username: data.username,
-        email: data.email
+        email: data.email,
       };
       const userCreated = await UserModel.create(googleuserdata);
       const googleId = userCreated.googleId as unknown as string;
@@ -58,8 +56,8 @@ export class UserRepository implements IUserRepository {
       console.log("error", error);
       throw error;
     }
-  }
-  async googleFindById(id: string): Promise<googleUser | null> {
+  };
+  googleFindById = async (id: string): Promise<googleUser | null> => {
     try {
       console.log("here the find by id");
       const existingUserDoc = await UserModel.findById({ _id: id });
@@ -75,7 +73,7 @@ export class UserRepository implements IUserRepository {
         googleId: existingUserDoc.googleId as unknown as string,
         username: existingUserDoc.username,
         email: existingUserDoc.email,
-        _id:existingUserDoc._id
+        _id: existingUserDoc._id,
       };
 
       return existingUser;
@@ -84,37 +82,9 @@ export class UserRepository implements IUserRepository {
       console.log("err", error);
       throw error;
     }
-  }
+  };
 
-  async googleLogin(): Promise<string> {
-    passport.use(
-      new GoogleStrategy(
-        {
-          callbackURL: "/auth/google/redirect",
-          clientID: process.env.CLIENT_ID as string,
-          clientSecret: process.env.CLIENT_SECRET as string,
-        },
-        (accessToken, refreshToken, profile) => {
-          console.log("user data is getted", profile);
-          new UserModel({
-            googleId: profile.id,
-            email: profile.emails?.[0]?.value ?? "default@email.com",
-            name: profile.displayName,
-          })
-            .save()
-            .then((newuser) => {
-              console.log("created", newuser);
-              return;
-            })
-            .catch((error) => {
-              console.log("error", error);
-            });
-        }
-      )
-    );
-    return "User logged in successfully";
-  }
-  async isAdmin(email: string): Promise<{ isAdmin: boolean }> {
+  isAdmin = async (email: string): Promise<{ isAdmin: boolean }> => {
     const admin = await UserModel.findOne({ email: email });
 
     if (admin) {
@@ -124,12 +94,12 @@ export class UserRepository implements IUserRepository {
     }
 
     return { isAdmin: false };
-  }
+  };
 
   //checing otp
-  async otpcheck(
+  otpcheck = async (
     value: number
-  ): Promise<{ isValidOTP: boolean; isExpired: boolean }> {
+  ): Promise<{ isValidOTP: boolean; isExpired: boolean }> => {
     try {
       console.log("jwt otp", this._jwtotp);
       const enteredOTPString = Object.values(value).join("");
@@ -166,10 +136,10 @@ export class UserRepository implements IUserRepository {
       console.log("error", error);
       throw error;
     }
-  }
+  };
 
   //nodemailer and genrate otp
-  async sendmail(email: string): Promise<string> {
+  sendmail = async (email: string): Promise<string> => {
     try {
       console.log("emal form the repositories is", email);
       console.log("_jwtotp form the repositories is", this._jwtotp);
@@ -236,10 +206,10 @@ export class UserRepository implements IUserRepository {
       console.log("error", error);
       throw error;
     }
-  }
+  };
 
   //to sign user data using jwt
-  async jwt(payload: User) {
+  jwt = async (payload: User) => {
     try {
       console.log("here the jwt ", payload);
       const plainPayload = {
@@ -257,10 +227,10 @@ export class UserRepository implements IUserRepository {
       console.log("error", error);
       throw error;
     }
-  }
+  };
 
   //check if the pasword matching
-  async passwordmatch(email: string, password: string) {
+  passwordmatch = async (email: string, password: string) => {
     try {
       const user = await UserModel.findOne({ email });
       if (user) {
@@ -271,10 +241,10 @@ export class UserRepository implements IUserRepository {
       console.log("error", error);
       throw error;
     }
-  }
+  };
 
   //check if the user existing or not
-  async findByOne(email: string): Promise<User | null> {
+  findByOne = async (email: string): Promise<User | null> => {
     try {
       const existingUserDocument = await UserModel.findOne({ email: email });
       return existingUserDocument;
@@ -282,15 +252,15 @@ export class UserRepository implements IUserRepository {
       console.log("error", error);
       throw error;
     }
-  }
+  };
   //insert new user
-  async create(
+  create = async (
     username: string,
     email: string,
     password: string,
     dateofbirth: Date,
     isblocked: boolean
-  ): Promise<User> {
+  ): Promise<User> => {
     try {
       const user = {
         username: username,
@@ -308,5 +278,5 @@ export class UserRepository implements IUserRepository {
       console.log("error", error);
       throw error;
     }
-  }
+  };
 }

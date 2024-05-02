@@ -3,26 +3,23 @@ import { UserModel } from "../model/userModel";
 import { IAdminRepository } from "../providers/interfaces/IAdminRepository";
 
 export class AdminRepository implements IAdminRepository {
-  async blockUser(id: string): Promise<boolean> {
+
+  blockUser = async (id: string):Promise<{update:boolean,user:User|null}> => {
     try {
       const user = await UserModel.findById(id);
-
       if (!user) {
-        return false;
+        return {update:false,user:null};
       }
-
       user.isblocked = !user.isblocked;
-
       await user.save();
-
-      return true;
+      return {update:true,user:user}
     } catch (error) {
       console.error("Error toggling user status:", error);
-      return false;
+      throw error
     }
-  }
+  };
 
-  async getUsers(): Promise<User[] | null> {
+  getUsers = async (): Promise<User[] | null> => {
     try {
       const users = await UserModel.aggregate([
         {
@@ -36,5 +33,5 @@ export class AdminRepository implements IAdminRepository {
       console.log("error", error);
       throw error;
     }
-  }
+  };
 }
