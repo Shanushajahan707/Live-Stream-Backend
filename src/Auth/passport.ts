@@ -62,7 +62,8 @@ passport.use(
           const newUserData = new googleUser(
             profile.id,
             profile.displayName,
-            profile.emails?.[0]?.value ?? "default@email.com"
+            profile.emails?.[0]?.value ?? "default@email.com",
+            new Date('2000-01-01')
           );
           const newUser = await interactor.googleUserCreation(newUserData);
           if (newUser) {

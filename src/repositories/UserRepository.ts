@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { ChannelModel } from "../model/channelModel";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ export class UserRepository implements IUserRepository {
         googleId: existingUserDocument.googleId as unknown as string,
         username: existingUserDocument.username,
         email: existingUserDocument.email,
+        dateofbirth: existingUserDocument.dateofbirth ?? new Date(),
         _id: existingUserDocument._id,
       };
 
@@ -40,6 +42,7 @@ export class UserRepository implements IUserRepository {
         googleId: data.googleId,
         username: data.username,
         email: data.email,
+        dateofbirth: data.dateofbirth,
       };
       const userCreated = await UserModel.create(googleuserdata);
       const googleId = userCreated.googleId as unknown as string;
@@ -48,8 +51,27 @@ export class UserRepository implements IUserRepository {
         googleId: googleId,
         username: userCreated.username,
         email: userCreated.email,
+        dateofbirth: data.dateofbirth ?? new Date(),
         _id: userCreated.id,
       };
+      const channel = {
+        username: userCreated._id,
+        channelName: `${userCreated.username}'s Channel`,
+        followers: [],
+        subscription: 0,
+        banner: "/images/channel-banner1.png".replace("/images/", ""), 
+        video: [],
+        lives: [],
+      };
+
+      const newChannel = await ChannelModel.create(channel)
+        .then((ok) => {
+          console.log("ok channel created", ok);
+        })
+        .catch((error) => {
+          console.log("fail to crate", error);
+        });
+      console.log(newChannel, "created");
       return user;
     } catch (error) {
       console.log("creation");
@@ -73,6 +95,7 @@ export class UserRepository implements IUserRepository {
         googleId: existingUserDoc.googleId as unknown as string,
         username: existingUserDoc.username,
         email: existingUserDoc.email,
+        dateofbirth: existingUserDoc.dateofbirth ?? new Date(), // Provide a default value
         _id: existingUserDoc._id,
       };
 
@@ -213,15 +236,36 @@ export class UserRepository implements IUserRepository {
     try {
       console.log("here the jwt ", payload);
       const plainPayload = {
-        _id: payload._id,
         username: payload.username,
         email: payload.email,
-        role: payload.role,
         password: payload.password,
+        role: payload.role,
         dateofbirth: payload.dateofbirth,
         isblocked: payload.isblocked,
+        _id: payload._id,
       };
-      const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string);
+      console.log("payload is", plainPayload);
+      const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string, { expiresIn: '1h' });
+      return token;
+    } catch (error) {
+      console.log("error", error);
+      throw error;
+    }
+  };
+  refreshToken = async (payload: User) => {
+    try {
+      console.log("here the jwt ", payload);
+      const plainPayload = {
+        username: payload.username,
+        email: payload.email,
+        password: payload.password,
+        role: payload.role,
+        dateofbirth: payload.dateofbirth,
+        isblocked: payload.isblocked,
+        _id: payload._id,
+      };
+      console.log("payload is", plainPayload);
+      const token = jwt.sign(plainPayload, process.env.SECRET_REFRESH as string, { expiresIn: '10d' });
       return token;
     } catch (error) {
       console.log("error", error);
@@ -247,13 +291,28 @@ export class UserRepository implements IUserRepository {
   findByOne = async (email: string): Promise<User | null> => {
     try {
       const existingUserDocument = await UserModel.findOne({ email: email });
-      return existingUserDocument;
+      console.log("exisitng user is", existingUserDocument);
+      if (!existingUserDocument) {
+        return null;
+      }
+      const user = new User(
+        existingUserDocument.username,
+        existingUserDocument.email,
+        existingUserDocument.password,
+        existingUserDocument.role,
+        existingUserDocument.dateofbirth ?? new Date("2002-10-29"),
+        existingUserDocument.isblocked,
+        undefined,
+        existingUserDocument._id
+      );
+      console.log("usr from the findbyone in repo", user);
+      return user;
     } catch (error) {
       console.log("error", error);
       throw error;
     }
   };
-  //insert new user
+
   create = async (
     username: string,
     email: string,
@@ -271,9 +330,39 @@ export class UserRepository implements IUserRepository {
         isblocked: isblocked,
       };
 
-      const newuser = await UserModel.create(user);
-      console.log(newuser, "created");
-      return newuser;
+      const newUser = await UserModel.create(user);
+      console.log(newUser, "created");
+
+      const channel = {
+        username: newUser._id,
+        channelName: `${username}'s Channel`,
+        followers: [],
+        subscription: 0,
+        banner: "/images/channel-banner1.png".replace("/images/", ""), 
+        video: [],
+        lives: [],
+      };
+
+      const newChannel = await ChannelModel.create(channel)
+        .then((ok) => {
+          console.log("ok channel created", ok);
+        })
+        .catch((error) => {
+          console.log("fail to crate", error);
+        });
+      console.log(newChannel, "created");
+
+      const newUserInstance = new User(
+        newUser.username,
+        newUser.email,
+        newUser.password,
+        newUser.role,
+        newUser.dateofbirth ?? new Date("2002-10-29"),
+        newUser.isblocked,
+        newUser._id
+      );
+
+      return newUserInstance;
     } catch (error) {
       console.log("error", error);
       throw error;

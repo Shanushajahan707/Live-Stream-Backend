@@ -27,6 +27,7 @@ export class UserInteractor implements IUserInteractor {
         googleId: existingUserDoc.googleId as unknown as string,
         username: existingUserDoc.username,
         email: existingUserDoc.email,
+        dateofbirth: existingUserDoc.dateofbirth,
         _id: existingUserDoc._id,
       };
 
@@ -58,15 +59,17 @@ export class UserInteractor implements IUserInteractor {
   googleUserToken = async (
     googleId: number,
     username: string,
-    email: string
+    email: string,
+    _id: string
   ): Promise<string> => {
-    try {
+    try { 
       const gUser = {
         googleId,
         username,
         email,
+        _id,
       };
-      const token = jwt.sign(gUser, process.env.SECRET_LOGIN as string);
+      const token = jwt.sign(gUser, process.env.SECRET_LOGIN as string, { expiresIn: '1h' })
       return token;
     } catch (error) {
       console.log("error", error);
@@ -106,6 +109,14 @@ export class UserInteractor implements IUserInteractor {
   jwt = async (payload: User): Promise<string> => {
     try {
       return await this._repostitory.jwt(payload);
+    } catch (error) {
+      console.error("Error in jwt:", error);
+      throw error;
+    }
+  };
+  refreshToken = async (payload: User): Promise<string> => {
+    try {
+      return await this._repostitory.refreshToken(payload);
     } catch (error) {
       console.error("Error in jwt:", error);
       throw error;

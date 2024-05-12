@@ -11,6 +11,7 @@ export interface IUserRepository {
   ): Promise<User>;
   passwordmatch(email: string, password: string): Promise<boolean | undefined>;
   jwt(payload: User): Promise<string>;
+  refreshToken(payload: User): Promise<string>;
   sendmail(email: string): Promise<string>;
   otpcheck(value: number): Promise<{ isValidOTP: boolean; isExpired: boolean }>;
   isAdmin(email: string): Promise<{ isAdmin: boolean }>;

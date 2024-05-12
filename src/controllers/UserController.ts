@@ -6,18 +6,10 @@ import { User } from "../entities/User";
 import { isValidEmail } from "../utils/validEmail";
 import { isValidPassword } from "../utils/validPassword";
 import { validAge } from "../utils/validAge";
+import { ResponseStatus } from "../constants/statusCodeEnums";
 
 dotenv.config();
 //set enum for each reponse message
-enum ResponseStatus {
-  OK = 200,
-  Created = 201,
-  Accepted = 202,
-  BadRequest = 400,
-  Unauthorized = 401,
-  Forbidden = 403,
-  NotFound = 404,
-}
 
 export class UserController {
   private _interactor: IUserInteractor;
@@ -31,7 +23,6 @@ export class UserController {
   //logn funcitonalities and call the interactor
   onLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log(req.body);
       if (!req.body) {
         return res
           .status(ResponseStatus.BadRequest)
@@ -80,9 +71,12 @@ export class UserController {
               .json({ message: "Account Blocked" });
           }
           const token = await this._interactor.jwt(userdata);
+          const refreshToken=await this._interactor.refreshToken(userdata)
+          console.log('access token',token); 
+          console.log('refresh token',refreshToken); 
           return res
             .status(ResponseStatus.Accepted)
-            .json({ message: "Sucess Login", token, isAdmin });
+            .json({ message: "Sucess Login", token, refreshToken:refreshToken, isAdmin });
         }
       } else {
         return res
@@ -256,16 +250,17 @@ export class UserController {
       if (req.user) {
         const message = "Google Authentication Success";
         const user = JSON.stringify(req.user);
-        const { googleId, username, email } = JSON.parse(user);
+        const { googleId, username, email,_id } = JSON.parse(user);
 
         const token = await this._interactor.googleUserToken(
           googleId,
           username,
-          email
+          email,
+          _id
         );
         console.log("token", token);
         res.cookie("authResponse", JSON.stringify({ message, user, token }));
-       return res.redirect("http://localhost:4200/login");
+        return res.redirect("http://localhost:4200/login");
       }
     } catch (error) {
       next(error);

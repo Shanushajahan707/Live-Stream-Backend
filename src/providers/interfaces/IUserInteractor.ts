@@ -11,13 +11,15 @@ export interface IUserInteractor {
   ): Promise<User>;
   checkpass(email: string, password: string): Promise<boolean | undefined>;
   jwt(payload: User): Promise<string>;
+  refreshToken(payload: User): Promise<string>;
   sendmail(email: string): Promise<string>;
   checkotp(value: number): Promise<{ isValidOTP: boolean; isExpired: boolean }>;
   isAdmin(email: string): Promise<{ isAdmin: boolean }>;
   googleUserToken(
     googleId: number,
     username: string,
-    email: string
+    email: string,
+    _id:string
   ): Promise<string>;
   googleFindById(id: string): Promise<googleUser | null>;
   googleFindOne(id: string): Promise<googleUser | null>;

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { UserController } from "../controllers/UserController";
+import { UserController } from "../controllers/userController";
 import { UserRepository } from "../repositories/UserRepository";
 import { UserInteractor } from "../interactors/UserInteractor";
 import passport from "passport";
