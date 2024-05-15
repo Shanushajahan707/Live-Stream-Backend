@@ -3,7 +3,6 @@ import { UserController } from "../controllers/userController";
 import { UserRepository } from "../repositories/UserRepository";
 import { UserInteractor } from "../interactors/UserInteractor";
 import passport from "passport";
-import authMiddleware from "../middleware/authMiddleware";
 const router = Router();
 
 // Creating a new instance of UserRepository to handle data access operations for the User entity.
@@ -23,8 +22,9 @@ router.post("/signup", controller.onSignup.bind(controller));
 router.post("/otpverify", controller.onCheckOtp.bind(controller));
 //call the method to handel the resend otp
 router.post("/resendotp", controller.resendOtp.bind(controller));
+router.post("/refreshtoken", controller.refreshToken.bind(controller));
 //tesing route
-router.post("/test", authMiddleware, controller.test.bind(controller));
+// router.post("/test", authMiddleware, controller.test.bind(controller));
 //google auth
 router.get(
   "/auth/google",

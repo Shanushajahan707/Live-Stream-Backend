@@ -71,12 +71,14 @@ export class UserController {
               .json({ message: "Account Blocked" });
           }
           const token = await this._interactor.jwt(userdata);
-          const refreshToken=await this._interactor.refreshToken(userdata)
-          console.log('access token',token); 
-          console.log('refresh token',refreshToken); 
-          return res
-            .status(ResponseStatus.Accepted)
-            .json({ message: "Sucess Login", token, refreshToken:refreshToken, isAdmin });
+          const refreshToken = await this._interactor.refreshToken(userdata);
+          return res.status(ResponseStatus.Accepted).json({
+            message: "Sucess Login",
+            token,
+            refreshToken: refreshToken,
+            isAdmin,
+            userdata,
+          });
         }
       } else {
         return res
@@ -233,12 +235,30 @@ export class UserController {
       next(error);
     }
   };
-  test = async (req: Request, res: Response, next: NextFunction) => {
+  // test = async (req: Request, res: Response, next: NextFunction) => {
+  //   try {
+  //     console.log(
+  //       "user data for mthe test routes extracted by the token",
+  //       req.user
+  //     );
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // };
+  refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log(
-        "user data for mthe test routes extracted by the token",
-        req.user
-      );
+      const refreshToken = req.body.refreshToken;
+      if (!refreshToken) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Refresh token is missing" });
+      }
+      const newAccessToken = refreshToken;
+      console.log("token changed", newAccessToken);
+      res.status(ResponseStatus.Accepted).json({
+        accessToken: newAccessToken,
+        message: "Token refreshed",
+      });
     } catch (error) {
       next(error);
     }
@@ -250,12 +270,14 @@ export class UserController {
       if (req.user) {
         const message = "Google Authentication Success";
         const user = JSON.stringify(req.user);
-        const { googleId, username, email,_id } = JSON.parse(user);
-
+        const { googleId, username, email, _id } = JSON.parse(user);
+        const role = "user";
+        console.log("google callback", user);
         const token = await this._interactor.googleUserToken(
           googleId,
           username,
           email,
+          role,
           _id
         );
         console.log("token", token);

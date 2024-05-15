@@ -28,7 +28,8 @@ export class UserInteractor implements IUserInteractor {
         username: existingUserDoc.username,
         email: existingUserDoc.email,
         dateofbirth: existingUserDoc.dateofbirth,
-        _id: existingUserDoc._id,
+        role:existingUserDoc.role,
+        _id: existingUserDoc._id
       };
 
       return existingUser;
@@ -60,6 +61,7 @@ export class UserInteractor implements IUserInteractor {
     googleId: number,
     username: string,
     email: string,
+    role:string,
     _id: string
   ): Promise<string> => {
     try { 
@@ -67,9 +69,10 @@ export class UserInteractor implements IUserInteractor {
         googleId,
         username,
         email,
+        role,
         _id,
       };
-      const token = jwt.sign(gUser, process.env.SECRET_LOGIN as string, { expiresIn: '1h' })
+      const token = jwt.sign(gUser, process.env.SECRET_LOGIN as string, { expiresIn: '1m' })
       return token;
     } catch (error) {
       console.log("error", error);

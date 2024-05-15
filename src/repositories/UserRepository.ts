@@ -26,7 +26,8 @@ export class UserRepository implements IUserRepository {
         username: existingUserDocument.username,
         email: existingUserDocument.email,
         dateofbirth: existingUserDocument.dateofbirth ?? new Date(),
-        _id: existingUserDocument._id,
+        role:existingUserDocument.role,
+        _id: existingUserDocument._id
       };
 
       return existingUser;
@@ -52,7 +53,8 @@ export class UserRepository implements IUserRepository {
         username: userCreated.username,
         email: userCreated.email,
         dateofbirth: data.dateofbirth ?? new Date(),
-        _id: userCreated.id,
+        role:userCreated.role,
+        _id: userCreated.id
       };
       const channel = {
         username: userCreated._id,
@@ -96,7 +98,8 @@ export class UserRepository implements IUserRepository {
         username: existingUserDoc.username,
         email: existingUserDoc.email,
         dateofbirth: existingUserDoc.dateofbirth ?? new Date(), // Provide a default value
-        _id: existingUserDoc._id,
+        role:existingUserDoc.role,
+        _id: existingUserDoc._id
       };
 
       return existingUser;
@@ -245,7 +248,7 @@ export class UserRepository implements IUserRepository {
         _id: payload._id,
       };
       console.log("payload is", plainPayload);
-      const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string, { expiresIn: '1h' });
+      const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string, { expiresIn: '2h' });
       return token;
     } catch (error) {
       console.log("error", error);
@@ -265,7 +268,7 @@ export class UserRepository implements IUserRepository {
         _id: payload._id,
       };
       console.log("payload is", plainPayload);
-      const token = jwt.sign(plainPayload, process.env.SECRET_REFRESH as string, { expiresIn: '10d' });
+      const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string, { expiresIn: '10d' });
       return token;
     } catch (error) {
       console.log("error", error);

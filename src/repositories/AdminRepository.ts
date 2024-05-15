@@ -35,11 +35,15 @@ export class AdminRepository implements IAdminRepository {
     }
   };
 
-  getChannels = async (): Promise<Channel[] | null> => {
+  getChannels = async (page:number,limit:number): Promise<{allChannels:Channel[] | null,totalcount:number}> => {
     try {
-      const channels = await ChannelModel.find().populate("username");
-
-      const simplifiedChannels = channels.map((channel) => {
+      const skip = (page - 1) * limit;
+      const channels = await ChannelModel.find()
+      .skip(skip)
+      .limit(limit)
+      .populate("username");
+  
+      const allChannels = channels.map((channel) => {
         const {
           username: { username },
           channelName,
@@ -64,8 +68,8 @@ export class AdminRepository implements IAdminRepository {
           _id: _id.toString(),
         };
       });
-
-      return simplifiedChannels;
+      const totalcount = await ChannelModel.countDocuments();
+      return {allChannels,totalcount};
     } catch (error) {
       throw error;
     }
@@ -99,16 +103,28 @@ export class AdminRepository implements IAdminRepository {
     }
   };
 
-  getUsers = async (): Promise<User[] | null> => {
+  getUsers = async (page: number, limit: number): Promise<{users:User[] | null,totalCount:number}> => {
     try {
+      const skip = (page - 1) * limit;
+      console.log('query is',page,limit);
+      console.log('skip is',skip);
       const users = await UserModel.aggregate([
         {
           $match: {
             role: { $ne: "Admin" },
           },
         },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: limit,
+        },
       ]);
-      return users;
+      console.log('users are',users);
+      const totalCount = await UserModel.countDocuments({ role: { $ne: "Admin" } });
+      return { users, totalCount };
+      return {users,totalCount};
     } catch (error) {
       console.log("error", error);
       throw error;

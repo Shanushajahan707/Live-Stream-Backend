@@ -19,6 +19,7 @@ export interface IUserInteractor {
     googleId: number,
     username: string,
     email: string,
+    role:string,
     _id:string
   ): Promise<string>;
   googleFindById(id: string): Promise<googleUser | null>;

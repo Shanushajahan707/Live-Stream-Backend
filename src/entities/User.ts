@@ -17,6 +17,7 @@ export class googleUser {
     public readonly username: string,
     public readonly email: string,
     public readonly dateofbirth: Date,
+    public readonly role:string,
     public readonly _id?: string
   ) {}
 }

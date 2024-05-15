@@ -14,9 +14,9 @@ export class AdminInteractor implements IAdminInteractor {
   ): Promise<{ update: boolean; channel: Channel | null }> => {
     return await this._repository.blockChannel(id);
   };
-  getChannels = async (): Promise<Channel[] | null> => {
+  getChannels = async (page:number,limit:number): Promise<{allChannels:Channel[] | null,totalcount:number}> => {
     try {
-      return await this._repository.getChannels();
+      return await this._repository.getChannels(page,limit);
     } catch (error) {
       console.log("error", error);
       throw error;
@@ -34,9 +34,9 @@ export class AdminInteractor implements IAdminInteractor {
     }
   };
 
-  getUsers = async (): Promise<User[] | null> => {
+  getUsers = async (page: number, limit: number): Promise<{users:User[] | null,totalCount:number}> => {
     try {
-      return await this._repository.getUsers();
+      return await this._repository.getUsers(page,limit);
     } catch (error) {
       console.log("error", error);
       throw error;

@@ -10,14 +10,20 @@ export class AdminController {
 
   onGetUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const users = await this._interactor.getUsers();
-      if (users) {
-        console.log("users are", users);
+      const page = parseInt(req.query.page as string, 10);
+      const limit = parseInt(req.query.limit as string, 10);
+      console.log("controller from page and limit", page, limit);
+      const response = await this._interactor.getUsers(page, limit);
+      if (response) {
+        console.log("users are", response.users);
         return res
           .status(ResponseStatus.OK)
-          .json({ message: "Successfully get all the users", users });
+          .json({
+            message: "Successfully get all the users",
+            users: response.users,
+            totalcount: response.totalCount,
+          });
       }
-      console.log("users", users);
     } catch (error) {
       next(error);
     }
@@ -64,11 +70,14 @@ export class AdminController {
     next: NextFunction
   ) => {
     try {
-      const channels = await this._interactor.getChannels();
-      if (channels) {
+      const page = parseInt(req.query.page as string, 10);
+      const limit = parseInt(req.query.limit as string, 10);
+      const allChannels = await this._interactor.getChannels(page,limit);
+      console.log(allChannels.allChannels);
+      if (allChannels) {
         return res
           .status(ResponseStatus.OK)
-          .json({ message: "fetching channals complete", channels });
+          .json({ message: "fetching channals complete", channels:allChannels.allChannels,totalcount:allChannels.totalcount });
       } else {
         return res.status(400).json({ message: "Error fetching channals" });
       }
