@@ -13,6 +13,13 @@ export class UserInteractor implements IUserInteractor {
   constructor(repository: IUserRepository) {
     this._repostitory = repository;
   }
+  forgotPassMailSent=async(email: string): Promise<string>=> {
+    try {
+      return this._repostitory.forgotPassMailSent(email)
+    } catch (error) {
+      throw error
+    }
+  }
   googleFindOne = async (email: string): Promise<googleUser | null> => {
     try {
       const existingUserDoc = await this._repostitory.findByOne(email);
@@ -72,7 +79,7 @@ export class UserInteractor implements IUserInteractor {
         role,
         _id,
       };
-      const token = jwt.sign(gUser, process.env.SECRET_LOGIN as string, { expiresIn: '1m' })
+      const token = jwt.sign(gUser, process.env.SECRET_LOGIN as string, { expiresIn: '2h' })
       return token;
     } catch (error) {
       console.log("error", error);

@@ -90,6 +90,30 @@ export class UserController {
     }
   };
 
+  //forgot poassword send url through mail
+  onSendUrl=async (req:Request,res:Response,next:NextFunction)=>{
+    try {
+        if(!req.body){
+          return res.status(ResponseStatus.BadRequest).json({message:"Enter the proper data"})
+        }
+        const enteredData = {
+          email: req.body.registeredEmail ? req.body.email.trim() : null,
+        };
+        if(!enteredData){
+          return res.status(ResponseStatus.BadRequest).json({message:"Enter the email properly"})
+        }
+        if(!isValidEmail(req.body.registeredemail)){
+          res.status(ResponseStatus.BadRequest).json({message:"Email format is not correct"})
+        }
+        const userExist=await this._interactor.login(req.body.registeredemail)
+        if(userExist===null){
+          return res.status(ResponseStatus.BadRequest).json({message:"Registered Email not found"})
+        }
+    } catch (error) {
+      next(error)
+    }
+  }
+
   //signup fucntionalities and call the interactor
   onSignup = async (req: Request, res: Response, next: NextFunction) => {
     try {

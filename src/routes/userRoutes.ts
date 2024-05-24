@@ -15,7 +15,9 @@ const interactor = new UserInteractor(repository);
 const controller = new UserController(interactor);
 
 // Calls the onLogin method of the UserController instance to handle the login process.
-router.post("/loginuser", controller.onLogin.bind(controller));
+router.post("/loginuser", controller.onLogin.bind(controller));  
+//forgot poassword route  
+router.post("/forgoturl", controller.onSendUrl.bind(controller));    
 //call the onsignup method of the Usercontroller instance to handle the signup process
 router.post("/signup", controller.onSignup.bind(controller));
 //call the mehtod to handle otp post
