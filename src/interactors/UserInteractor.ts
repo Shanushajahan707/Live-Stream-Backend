@@ -13,7 +13,7 @@ export class UserInteractor implements IUserInteractor {
   constructor(repository: IUserRepository) {
     this._repostitory = repository;
   }
-  forgotPassMailSent=async(email: string): Promise<string>=> {
+  forgotPassMailSent=async(email: string): Promise<{isMailSent:string,otp:number}>=> {
     try {
       return this._repostitory.forgotPassMailSent(email)
     } catch (error) {

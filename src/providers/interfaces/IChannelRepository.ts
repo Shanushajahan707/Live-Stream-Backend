@@ -8,5 +8,8 @@ export interface IChannelRepository {
   followChannel(userid:string,channelData:Channel):Promise<Channel|null>
   unfollowChannel(userid:string,channelData:Channel):Promise<Channel|null>
   isFollow(userid:string,channelDate:Channel):Promise<boolean>
+  getFullFollowChannels(userid:string):Promise<Channel[]|null>
+  getFollowChannel(channelId:string):Promise<Channel|null>
+  shortInDb(channelId:string,location:string):Promise<Channel|null>
 
 }

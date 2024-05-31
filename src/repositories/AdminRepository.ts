@@ -5,6 +5,13 @@ import { UserModel } from "../model/userModel";
 import { IAdminRepository } from "../providers/interfaces/IAdminRepository";
 
 export class AdminRepository implements IAdminRepository {
+  getUserOne=async(userId: string): Promise<User | null> =>{
+    try {
+      return await UserModel.findById(userId)
+    } catch (error) {
+      throw error
+    }
+  }
   blockChannel = async (
     id: string
   ): Promise<{ update: boolean; channel: Channel | null }> => {
@@ -16,36 +23,41 @@ export class AdminRepository implements IAdminRepository {
       channeldata.isblocked = !channeldata.isblocked;
       await channeldata.save();
 
-      const newChannelData: Channel = {
-        _id: channeldata._id.toString(),
-        username: channeldata.username.toString(),
-        channelName: channeldata.channelName,
-        followers: channeldata.followers.map((follower) => follower.username),
-        subscription: channeldata.subscription,
-        banner: channeldata.banner,
-        video: channeldata.video,
-        lives: channeldata.lives,
-        isblocked: channeldata.isblocked,
-      };
-
+      
+    const newChannelData: Channel = {
+      _id: channeldata._id.toString(),
+      username: channeldata.username.toString(),
+      channelName: channeldata.channelName,
+      followers: channeldata.followers.map((follower) => ({
+        username: follower.username,
+        userId: follower.userId.toString(),
+      })),
+      subscription: channeldata.subscription,
+      banner: channeldata.banner,
+      video: channeldata.video.map((video) => ({
+        url: video.url,
+        views: video.views,
+      })),
+      lives: channeldata.lives,
+      isblocked: channeldata.isblocked,
+    };
       return { update: true, channel: newChannelData };
     } catch (error) {
       console.error("Error toggling user status:", error);
       throw error;
     }
   };
-
-  getChannels = async (page:number,limit:number): Promise<{allChannels:Channel[] | null,totalcount:number}> => {
+  getChannels = async (page: number, limit: number): Promise<{ allChannels: Channel[] | null, totalcount: number }> => {
     try {
       const skip = (page - 1) * limit;
       const channels = await ChannelModel.find()
-      .skip(skip)
-      .limit(limit)
-      .populate("username");
+        .skip(skip)
+        .limit(limit)
+        .populate({ path: 'username', select: 'username' });
   
       const allChannels = channels.map((channel) => {
         const {
-          username: { username },
+          username,
           channelName,
           followers,
           subscription,
@@ -55,25 +67,33 @@ export class AdminRepository implements IAdminRepository {
           isblocked,
           _id,
         } = channel;
-
+  
         return {
-          username,
+          _id: _id.toString(),
+          username:  username.username,
           channelName,
-          followers: followers.map((follower) => follower.username),
+          followers: followers.map((follower) => ({
+            username: follower.username,
+            userId: follower.userId.toString(),
+          })),
           subscription,
           banner,
-          video,
+          video: video.map((vid) => ({
+            url: vid.url,
+            views: vid.views,
+          })),
           lives,
           isblocked,
-          _id: _id.toString(),
-        };
+        } as Channel;
       });
+  
       const totalcount = await ChannelModel.countDocuments();
-      return {allChannels,totalcount};
+      return { allChannels, totalcount };
     } catch (error) {
       throw error;
     }
   };
+  
 
   blockUser = async (
     id: string

@@ -56,6 +56,7 @@ export function configureSocket(expressServer: httpServer) {
       console.log('Inside', data.room, "answer to", data.id);
       io.to(data.id).emit('answer', { id: socket.id, answer: data.answer });
     });
+    
 
     socket.on('peer-nego-needed', (data) => {
       console.log('Peer negotiation needed');

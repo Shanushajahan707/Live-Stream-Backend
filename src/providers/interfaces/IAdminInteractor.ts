@@ -8,4 +8,5 @@ export interface IAdminInteractor {
   blockChannel(
     id: string
   ): Promise<{ update: boolean; channel: Channel | null }>;
+  getUserOne(userId:string):Promise<User|null>
 }

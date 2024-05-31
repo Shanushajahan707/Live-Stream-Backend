@@ -18,6 +18,7 @@ const controller = new UserController(interactor);
 router.post("/loginuser", controller.onLogin.bind(controller));  
 //forgot poassword route  
 router.post("/forgoturl", controller.onSendUrl.bind(controller));    
+router.post("/forgotpasswordotp", controller.onSendOtp.bind(controller));    
 //call the onsignup method of the Usercontroller instance to handle the signup process
 router.post("/signup", controller.onSignup.bind(controller));
 //call the mehtod to handle otp post

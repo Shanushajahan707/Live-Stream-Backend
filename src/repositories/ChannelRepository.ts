@@ -5,20 +5,98 @@ import { IChannelRepository } from "../providers/interfaces/IChannelRepository";
 import { UserModel } from "../model/userModel";
 
 export class channelRepository implements IChannelRepository {
+
+  shortInDb = async (
+    channelId: string,
+    location: string
+  ): Promise<Channel | null> => {
+    try {
+
+      console.log('channelid',channelId,"url",location);
+      const channel = await ChannelModel.findById(channelId);
+  
+      if (!channel) {
+        return null; 
+      }
+  
+      const newVideo = {
+        url: location,
+        views: 0,
+      };
+  
+      channel.video.push(newVideo);
+  
+      const updatedChannel = await ChannelModel.findByIdAndUpdate(
+        channelId,
+        channel,
+        { new: true }
+      ) as Channel;
+  
+      if (!updatedChannel) {
+        return null;
+      }
+      console.log('short inserted',updatedChannel);
+      return updatedChannel;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+  
+
+
+  getFollowChannel = async (channelId: string): Promise<Channel | null> => {
+    try {
+      return await ChannelModel.findById(channelId);
+    } catch (error) {
+      throw error;
+    }
+  };
+  getFullFollowChannels = async (userid: string): Promise<Channel[] | null> => {
+    try {
+      const userChannels = await ChannelModel.find({
+        "followers.userId": userid,
+      });
+
+      if (!userChannels || userChannels.length === 0) {
+        return null;
+      }
+
+      const channels: Channel[] = userChannels.map((doc) => {
+        return {
+          _id: doc._id,
+          username: doc.username,
+          channelName: doc.channelName,
+          followers: doc.followers.map((follower) =>
+            follower.userId.toString()
+          ),
+          subscription: doc.subscription,
+          banner: doc.banner,
+          video: doc.video.map((videoObj) => ({
+            url: videoObj.url.toString(),
+            views: videoObj.views || 0,
+          })),
+          lives: doc.lives,
+          isblocked: doc.isblocked,
+        };
+      });
+
+      return channels;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
   unfollowChannel = async (
     userid: string,
     channelData: Channel
   ): Promise<Channel | null> => {
     try {
-      // console.log("userid", userid);
-      // console.log("channel data", channelData);
-
       const user = await UserModel.findById(userid, { _id: 1, username: 1 });
       if (!user) {
         throw new Error("User not found");
       }
-      console.log("user", user);
-
+  
       const updateOperation = {
         $pull: {
           followers: {
@@ -26,30 +104,32 @@ export class channelRepository implements IChannelRepository {
           },
         },
       };
-      // console.log("update operation", updateOperation);
-
+  
       const updatedMongooseChannel = await ChannelModel.findOneAndUpdate(
         { _id: channelData._id },
         updateOperation,
         { new: true }
       );
-      // console.log("updated mongoose", updatedMongooseChannel);
-
+  
       if (updatedMongooseChannel) {
         const updatedChannel: Channel = {
           _id: updatedMongooseChannel._id.toString(),
           username: updatedMongooseChannel.username.toString(),
           channelName: updatedMongooseChannel.channelName,
-          followers: updatedMongooseChannel.followers.map(
-            (follower) => follower.username
-          ),
+          followers: updatedMongooseChannel.followers.map((follower) => ({
+            username: follower.username,
+            userId: follower.userId.toString(),
+          })),
           subscription: updatedMongooseChannel.subscription,
           banner: updatedMongooseChannel.banner,
-          video: updatedMongooseChannel.video,
+          video: updatedMongooseChannel.video.map((videoObj) => ({
+            url: videoObj.url.toString(),
+            views: videoObj.views || 0,
+          })),
           lives: updatedMongooseChannel.lives,
           isblocked: updatedMongooseChannel.isblocked,
         };
-        // console.log("updated channel", updatedChannel);
+  
         return updatedChannel;
       }
       return null;
@@ -84,15 +164,12 @@ export class channelRepository implements IChannelRepository {
     channelData: Channel
   ): Promise<Channel | null> => {
     try {
-      // console.log("userid", userid);
-      // console.log("channel data", channelData);
-
       // Find the user by ID
       const user = await UserModel.findById(userid, { _id: 1, username: 1 });
       if (!user) {
         throw new Error("User not found");
       }
-      // console.log("user", user);
+  
       // Prepare the update operation
       const updateOperation = {
         $push: {
@@ -102,28 +179,32 @@ export class channelRepository implements IChannelRepository {
           },
         },
       };
-      // console.log("updated operation", updateOperation);
+  
       const updatedMongooseChannel = await ChannelModel.findOneAndUpdate(
         { _id: channelData._id },
         updateOperation,
         { new: true }
       );
-      // console.log("updated mongoose", updatedMongooseChannel);
+  
       if (updatedMongooseChannel) {
         const updatedChannel: Channel = {
           _id: updatedMongooseChannel._id.toString(),
           username: updatedMongooseChannel.username.toString(),
           channelName: updatedMongooseChannel.channelName,
-          followers: updatedMongooseChannel.followers.map(
-            (follower) => follower.username
-          ),
+          followers: updatedMongooseChannel.followers.map((follower) => ({
+            username: follower.username,
+            userId: follower.userId.toString(),
+          })),
           subscription: updatedMongooseChannel.subscription,
           banner: updatedMongooseChannel.banner,
-          video: updatedMongooseChannel.video,
+          video: updatedMongooseChannel.video.map((videoObj) => ({
+            url: videoObj.url.toString(),
+            views: videoObj.views || 0,
+          })),
           lives: updatedMongooseChannel.lives,
           isblocked: updatedMongooseChannel.isblocked,
         };
-        // console.log("updated channel", updatedChannel);
+  
         return updatedChannel;
       }
       return null;
@@ -131,12 +212,10 @@ export class channelRepository implements IChannelRepository {
       throw error;
     }
   };
-
   getRecommededChannel = async (userid: string): Promise<Channel[] | null> => {
     try {
       const result = await ChannelModel.find({ username: { $ne: userid } })
         .sort({ followers: -1 })
-        .limit(3)
         .exec();
 
       const channels: Channel[] = result.map((doc) => ({
@@ -145,7 +224,10 @@ export class channelRepository implements IChannelRepository {
         followers: doc.followers.map((follower) => follower.userId),
         subscription: doc.subscription,
         banner: doc.banner,
-        video: doc.video,
+        video: doc.video.map((videoObj) => ({
+          url: videoObj.url.toString(),
+          views: videoObj.views || 0,
+        })),
         lives: doc.lives,
         isblocked: doc.isblocked,
         _id: doc._id,
@@ -188,10 +270,16 @@ export class channelRepository implements IChannelRepository {
       _id: newData._id.toString(),
       username: newData.username.toString(),
       channelName: newData.channelName,
-      followers: newData.followers.map((follower) => follower.username),
+      followers: newData.followers.map((follower) => ({
+        username: follower.username,
+        userId: follower.userId.toString(),
+      })),
       subscription: newData.subscription,
       banner: newData.banner,
-      video: newData.video,
+      video: newData.video.map((videoObj) => ({
+        url: videoObj.url.toString(),
+        views: videoObj.views || 0,
+      })),
       lives: newData.lives,
       isblocked: newData.isblocked,
     };
@@ -200,30 +288,46 @@ export class channelRepository implements IChannelRepository {
   };
 
   getChannel = async (id: string): Promise<Channel | null> => {
-    try {
-      console.log("userid from repo", id);
-      const userId = new mongoose.Types.ObjectId(id);
-      console.log(userId);
-      const channel = await ChannelModel.findOne({ username: userId }).exec();
+  try {
+    // Convert the string ID to a MongoDB ObjectID
+    const userId = new mongoose.Types.ObjectId(id);
 
-      if (!channel) {
-        return null;
-      }
-      const channels: Channel = {
-        _id: channel._id.toString(),
-        username: channel.username.toString(),
-        channelName: channel.channelName,
-        followers: channel.followers.map((follower) => follower.username),
-        subscription: channel.subscription,
-        banner: channel.banner,
-        video: channel.video,
-        lives: channel.lives,
-        isblocked: channel.isblocked,
-      };
-      return channels;
-    } catch (error) {
-      console.log("Error:", error);
-      throw error;
+    // Retrieve the channel based on the user ID
+    const channel = await ChannelModel.findOne({ username: userId });
+
+    // If no channel is found, return null
+    if (!channel) {
+      return null;
     }
-  };
+
+    const mappedChannel: Channel = {
+      _id: channel._id.toString(),
+      username: channel.username.toString(),
+      channelName: channel.channelName,
+      followers: channel.followers.map((follower) => ({
+        username: follower.username,
+        userId: follower.userId.toString(),
+      })),
+      subscription: channel.subscription,
+      banner: channel.banner,
+      video: channel.video.map((videoObj) => ({
+        url: videoObj.url.toString(),
+        views: videoObj.views || 0,
+      })),
+      lives: channel.lives,
+      isblocked: channel.isblocked,
+    };
+
+    // Return the mapped channel data
+    return mappedChannel;
+  } catch (error) {
+    // Log any errors
+    console.error("Error fetching channel:", error);
+    // Throw the error for handling further up the chain
+    throw error;
+  }
+};
+
+
+
 }

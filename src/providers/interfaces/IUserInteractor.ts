@@ -25,5 +25,5 @@ export interface IUserInteractor {
   googleFindById(id: string): Promise<googleUser | null>;
   googleFindOne(id: string): Promise<googleUser | null>;
   googleUserCreation(data: googleUser): Promise<googleUser>;
-  forgotPassMailSent(email:string):Promise<string>
+  forgotPassMailSent(email:string):Promise<{isMailSent:string,otp:number}>
 }

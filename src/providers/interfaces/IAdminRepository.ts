@@ -8,4 +8,6 @@ export interface IAdminRepository {
   blockChannel(
     id: string
   ): Promise<{ update: boolean; channel: Channel | null }>;
+  getUserOne(userId:string):Promise<User|null>
+
 }

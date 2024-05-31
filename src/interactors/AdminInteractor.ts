@@ -9,6 +9,13 @@ export class AdminInteractor implements IAdminInteractor {
   constructor(repository: IAdminRepository) {
     this._repository = repository;
   }
+  getUserOne=async(userId: string): Promise<User | null> =>{
+    try {
+      return await this._repository.getUserOne(userId)
+    } catch (error) {
+      throw error
+    }
+  }
   blockChannel = async (
     id: string
   ): Promise<{ update: boolean; channel: Channel | null }> => {

@@ -13,12 +13,12 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers["authorization"];
   if (authHeader) {
     const token = authHeader && authHeader.split(" ")[1];
-    console.log('token form the middleaare',token);
+    // console.log('token form the middleaare',token);
     jwt.verify(token, process.env.SECRET_LOGIN  as string, (err, user) => {
       if (err) {
         return res.sendStatus(401);
       }
-      console.log(user,"form the middleware");
+      // console.log(user,"form the middleware");
       req.user = user as User;
       console.log("user from the auth middleware");
       next();

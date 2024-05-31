@@ -7,7 +7,6 @@ import { isValidEmail } from "../utils/validEmail";
 import { isValidPassword } from "../utils/validPassword";
 import { validAge } from "../utils/validAge";
 import { ResponseStatus } from "../constants/statusCodeEnums";
-
 dotenv.config();
 //set enum for each reponse message
 
@@ -91,28 +90,76 @@ export class UserController {
   };
 
   //forgot poassword send url through mail
-  onSendUrl=async (req:Request,res:Response,next:NextFunction)=>{
+  onSendUrl = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if(!req.body){
-          return res.status(ResponseStatus.BadRequest).json({message:"Enter the proper data"})
-        }
-        const enteredData = {
-          email: req.body.registeredEmail ? req.body.email.trim() : null,
-        };
-        if(!enteredData){
-          return res.status(ResponseStatus.BadRequest).json({message:"Enter the email properly"})
-        }
-        if(!isValidEmail(req.body.registeredemail)){
-          res.status(ResponseStatus.BadRequest).json({message:"Email format is not correct"})
-        }
-        const userExist=await this._interactor.login(req.body.registeredemail)
-        if(userExist===null){
-          return res.status(ResponseStatus.BadRequest).json({message:"Registered Email not found"})
-        }
+      if (!req.body) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Enter the proper data" });
+      }
+      const enteredData = {
+        email: req.body.registeredEmail ? req.body.email.trim() : null,
+      };
+      if (!enteredData) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Enter the email properly" });
+      }
+      if (!isValidEmail(req.body.registeredemail)) {
+        res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Email format is not correct" });
+      }
+      const userExist = await this._interactor.login(req.body.registeredemail);
+      if (!userExist) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Registered Email not found" });
+      }
+      const isMailSent = await this._interactor.forgotPassMailSent(
+        req.body.registeredemail
+      );
+      if (!isMailSent.isMailSent) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Error While genrating the forgot password" });
+      }
+      console.log("mail sent", isMailSent);
+      console.log("otp is", isMailSent.otp);
+      req.session.otpValue = isMailSent.otp;
+      const sample = { otp: 1234 };
+      req.session.otpValue = sample.otp;
+      console.log("seson value is", req.session.otpValue);
+      return res
+        .status(ResponseStatus.Accepted)
+        .json({ message: `Check ${req.body.registeredemail}` });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
+  onSendOtp = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.body) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Enter the proper data" });
+      }
+      console.log("Entered OTP is", req.body.otpValue);
+      const otpValue = req.session.otpValue;
+      console.log("Session OTP is", req.session.otpValue);
+      console.log('otp Value',otpValue);
+      if (parseInt(req.body.otpValue) !== otpValue) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Invalid Otp", otpvalue: false });
+      }
+      res
+        .status(ResponseStatus.OK)
+        .json({ message: "valid otp", otpvalue: true });
+    } catch (error) {
+      next(error);
+    }
+  };
 
   //signup fucntionalities and call the interactor
   onSignup = async (req: Request, res: Response, next: NextFunction) => {

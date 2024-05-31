@@ -4,21 +4,33 @@ import { UserModel } from "../model/userModel";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import nodemailer from "nodemailer";
-import crypto from "crypto";
 import { ChannelModel } from "../model/channelModel";
+import { generateRandomString } from "../utils/generateOtp";
+import { sendOtpEmail } from "../utils/newUserNodemailer";
+import { sendOtpEmailForForgotPass } from "../utils/forgotPassNodemailer";
 
 dotenv.config();
 
 export class UserRepository implements IUserRepository {
   private _jwtotp: string | null = null;
 
-  forgotPassMailSent = async (email: string): Promise<string> => {
+  forgotPassMailSent = async (
+    email: string
+  ): Promise<{ isMailSent: string; otp: number }> => {
     try {
-      console.log('email is',email);
-      return 'passed'
+      console.log("email is", email);
+      const generateRandomFourDigitNumber = (): number => {
+        const min = 1000;
+        const max = 9999;
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      };
+      const otp = generateRandomFourDigitNumber();
+
+      const isMailSent = await sendOtpEmailForForgotPass(email, otp);
+
+      return { isMailSent: isMailSent, otp: otp };
     } catch (error) {
-      throw error
+      throw error;
     }
   };
 
@@ -178,55 +190,6 @@ export class UserRepository implements IUserRepository {
     try {
       console.log("emal form the repositories is", email);
       console.log("_jwtotp form the repositories is", this._jwtotp);
-      const sendOtpEmail = async (
-        email: string,
-        otp: number
-      ): Promise<string> => {
-        return new Promise((resolve, reject) => {
-          const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-              user: process.env.EMAIL,
-              pass: process.env.PASSCODE,
-            },
-          });
-          const mailOptions = {
-            from: "",
-            to: email,
-            subject: "One-Time Password (OTP) for Authentication",
-            html: `
-              <div style="font-family: Arial, sans-serif;">
-                <p>Dear User,</p>
-                <p>Your One-Time Password (OTP) for authentication is:<h1> ${otp} </h1> </p>
-                <p>Please click the button below to verify your account:</p>
-                <a href="http://localhost:4200/otp-verification" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">Verify Account</a>
-                <div style="margin-top: 20px;">
-                  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT38GdlfKO3i3cHMzxTvbK_ALOzkeiPpY7IgA&s" alt="Your Project Image" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
-                </div>
-              </div>
-            `,
-          };
-          transporter.sendMail(mailOptions, async (error, info) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(info.response);
-            }
-          });
-        });
-      };
-
-      const generateRandomString = (length: number): string => {
-        const digits = "012345678912";
-        let OTP = "";
-
-        for (let i = 0; i < length; i++) {
-          const randomIndex = crypto.randomInt(0, digits.length);
-          OTP += digits[randomIndex];
-        }
-
-        return OTP;
-      };
 
       const otp = parseInt(generateRandomString(6));
       console.log("generated otp is ", otp);

@@ -85,4 +85,20 @@ export class AdminController {
       next(error);
     }
   };
+  onGetUserProfile = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      console.log('userdata is',req.params.userid);
+      const userdata=await this._interactor.getUserOne(req.params.userid)
+      if(!userdata){
+        return res.status(ResponseStatus.BadRequest).json({message:"Can't find the userdata"})
+      }
+      res.status(ResponseStatus.Accepted).json({message:"User data fetched",userData:userdata})
+    } catch (error) {
+      next(error);
+    }
+  };
 }
