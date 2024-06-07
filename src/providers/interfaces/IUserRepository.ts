@@ -12,6 +12,8 @@ export interface IUserRepository {
   passwordmatch(email: string, password: string): Promise<boolean | undefined>;
   jwt(payload: User): Promise<string>;
   refreshToken(payload: User): Promise<string>;
+  verifyRefreshToken(token:string): Promise<boolean>;
+  generatenewtoken(token:string): Promise<string|null>;
   sendmail(email: string): Promise<string>;
   otpcheck(value: number): Promise<{ isValidOTP: boolean; isExpired: boolean }>;
   isAdmin(email: string): Promise<{ isAdmin: boolean }>;
@@ -19,5 +21,6 @@ export interface IUserRepository {
   googleFindOne(id: string): Promise<googleUser | null>;
   googleUserCreation(data: googleUser): Promise<googleUser>;
   forgotPassMailSent(email:string):Promise<{isMailSent:string,otp:number}>
+  isUserBlocked(userid:string):Promise<boolean>
 
 }

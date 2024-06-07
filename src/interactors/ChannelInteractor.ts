@@ -8,32 +8,49 @@ export class channelInteractor implements IChannelInteractor {
   constructor(private repository: IChannelRepository) {
     this._repository = repository;
   }
-  shortInDb=async(channelId:string,location: string): Promise<Channel | null> =>{
-    try {
-      return await this._repository.shortInDb(channelId,location)
-    } catch (error) {
-      throw error
-    }
+  onSearchChannels=async(query: string,userid:string): Promise<Channel[] | null> =>{
+   try {
+    return this._repository.onSearchChannels(query,userid)
+   } catch (error) {
+    throw error
+   }
   }
 
-
-  
-  uploadShort = async (
-    file: Express.Multer.File
-  ): Promise<string> => {
+  updateViews = async (
+    channelId: string,
+    location: string
+  ): Promise<Channel | null> => {
     try {
-      const s3bucket = await uploadS3Video(file);
-      if ('success' in s3bucket) { 
-        return s3bucket.success as string; 
-      } else {
-        return '';
-      }
-    } catch (err) {
-      console.error('Error during upload', err);
-      throw err
+      return await this.repository.updateViews(channelId, location);
+    } catch (error) {
+      throw error;
     }
   };
-  
+  shortInDb = async (
+    channelId: string,
+    location: string
+  ): Promise<Channel | null> => {
+    try {
+      return await this._repository.shortInDb(channelId, location);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  uploadShort = async (file: Express.Multer.File): Promise<string> => {
+    try {
+      const s3bucket = await uploadS3Video(file);
+      if ("success" in s3bucket) {
+        return s3bucket.success as string;
+      } else {
+        return "";
+      }
+    } catch (err) {
+      console.error("Error during upload", err);
+      throw err;
+    }
+  };
+
   getFollowChannel = async (channelId: string): Promise<Channel | null> => {
     try {
       return await this._repository.getFollowChannel(channelId);

@@ -147,7 +147,7 @@ export class UserController {
       console.log("Entered OTP is", req.body.otpValue);
       const otpValue = req.session.otpValue;
       console.log("Session OTP is", req.session.otpValue);
-      console.log('otp Value',otpValue);
+      console.log("otp Value", otpValue);
       if (parseInt(req.body.otpValue) !== otpValue) {
         return res
           .status(ResponseStatus.BadRequest)
@@ -318,15 +318,23 @@ export class UserController {
   // };
   refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const refreshToken = req.body.refreshToken;
+      const { refreshToken } = req.body;
       if (!refreshToken) {
-        return res
-          .status(ResponseStatus.BadRequest)
-          .json({ error: "Refresh token is missing" });
+        return res.status(ResponseStatus.BadRequest).json({ error: "Refresh token is missing" });
       }
-      const newAccessToken = refreshToken;
-      console.log("token changed", newAccessToken);
-      res.status(ResponseStatus.Accepted).json({
+
+      const isTokenValid = await this._interactor.verifyRefreshToken(refreshToken);
+      if (!isTokenValid) {
+        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid refresh token" });
+      }
+
+      const newAccessToken = await this._interactor.generatenewtoken(refreshToken);
+      if (!newAccessToken) {
+        return res.status(ResponseStatus.BadRequest).json({ error: "Error generating token" });
+      }
+
+      console.log('New token created:', newAccessToken);
+      return res.status(ResponseStatus.Accepted).json({
         accessToken: newAccessToken,
         message: "Token refreshed",
       });
@@ -354,6 +362,23 @@ export class UserController {
         console.log("token", token);
         res.cookie("authResponse", JSON.stringify({ message, user, token }));
         return res.redirect("http://localhost:4200/login");
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+  userIsBlocked = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (req.user) {
+        const { _id } = req.user as { _id: string };
+        const isUserBlocked = await this._interactor.isUserBlocked(_id);
+        console.log("userblocked", isUserBlocked);
+        if (isUserBlocked) {
+          console.log("user is blocked", isUserBlocked);
+          return res
+            .status(ResponseStatus.OK)
+            .json({ message: "Account Blocked", isBlocked: isUserBlocked });
+        }
       }
     } catch (error) {
       next(error);

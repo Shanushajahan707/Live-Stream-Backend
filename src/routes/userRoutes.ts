@@ -3,6 +3,7 @@ import { UserController } from "../controllers/userController";
 import { UserRepository } from "../repositories/UserRepository";
 import { UserInteractor } from "../interactors/UserInteractor";
 import passport from "passport";
+import authMiddleware from "../middleware/authMiddleware";
 const router = Router();
 
 // Creating a new instance of UserRepository to handle data access operations for the User entity.
@@ -39,5 +40,7 @@ router.get(
   passport.authenticate("google"),
   controller.googleCallback.bind(controller)
 );
+
+router.get("/userisblocked",authMiddleware, controller.userIsBlocked.bind(controller));
 
 export default router;

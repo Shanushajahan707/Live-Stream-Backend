@@ -55,6 +55,17 @@ router.post(
   authMiddleware,
   controller.onUploadShorts.bind(controller)
 );
+router.put(
+  "/updateviews/:channelId",
+  singleVideoUpload.single('videoFile'),
+  authMiddleware,
+  controller.onUpdateViews.bind(controller)
+);
+router.post(
+  "/searchchannel",
+  authMiddleware,
+  controller.onSearchChannel.bind(controller)
+);
 // router.get('/isfollow',authMiddleware,
   
 // )

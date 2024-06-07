@@ -6,44 +6,96 @@ import { UserModel } from "../model/userModel";
 
 export class channelRepository implements IChannelRepository {
 
-  shortInDb = async (
-    channelId: string,
-    location: string
-  ): Promise<Channel | null> => {
+   onSearchChannels = async (query: string, userid: string): Promise<Channel[] | null> => {
     try {
-
-      console.log('channelid',channelId,"url",location);
-      const channel = await ChannelModel.findById(channelId);
-  
-      if (!channel) {
-        return null; 
+      const channels = await ChannelModel.find({
+        channelName: { $regex: query, $options: "i" },
+        username: { $ne: userid }
+      });
+      if (channels.length > 0) {
+        return channels;
       }
-  
-      const newVideo = {
-        url: location,
-        views: 0,
-      };
-  
-      channel.video.push(newVideo);
-  
-      const updatedChannel = await ChannelModel.findByIdAndUpdate(
-        channelId,
-        channel,
-        { new: true }
-      ) as Channel;
-  
-      if (!updatedChannel) {
-        return null;
-      }
-      console.log('short inserted',updatedChannel);
-      return updatedChannel;
+      return null;
     } catch (error) {
       throw error;
     }
   };
   
-  
 
+  updateViews = async (
+    channelId: string,
+    location: string
+  ): Promise<Channel | null> => {
+    try {
+      const aggregationPipeline = [
+        { $match: { _id: new mongoose.Types.ObjectId(channelId) } },
+        { $unwind: "$video" },
+        { $match: { "video.url": location } },
+        { $group: { _id: "$_id", video: { $first: "$video" } } },
+      ];
+      const channelAggregateResult = await ChannelModel.aggregate(
+        aggregationPipeline
+      );
+
+      if (channelAggregateResult.length > 0) {
+        channelAggregateResult[0] as Channel;
+
+        const updateResult = await ChannelModel.findOneAndUpdate(
+          { _id: channelId, "video.url": location },
+          { $inc: { "video.$.views": 1 } },
+          { new: true }
+        );
+
+        if (updateResult) {
+          console.log("Views updated successfully");
+          return updateResult;
+        } else {
+          console.log("Video not found in the channel.");
+          return null;
+        }
+      } else {
+        console.log("Video not found in the channel.");
+        return null;
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  shortInDb = async (
+    channelId: string,
+    location: string
+  ): Promise<Channel | null> => {
+    try {
+      console.log("channelid", channelId, "url", location);
+      const channel = await ChannelModel.findById(channelId);
+
+      if (!channel) {
+        return null;
+      }
+
+      const newVideo = {
+        url: location,
+        views: 0,
+      };
+
+      channel.video.push(newVideo);
+
+      const updatedChannel = (await ChannelModel.findByIdAndUpdate(
+        channelId,
+        channel,
+        { new: true }
+      )) as Channel;
+
+      if (!updatedChannel) {
+        return null;
+      }
+      console.log("short inserted", updatedChannel);
+      return updatedChannel;
+    } catch (error) {
+      throw error;
+    }
+  };
 
   getFollowChannel = async (channelId: string): Promise<Channel | null> => {
     try {
@@ -67,9 +119,10 @@ export class channelRepository implements IChannelRepository {
           _id: doc._id,
           username: doc.username,
           channelName: doc.channelName,
-          followers: doc.followers.map((follower) =>
-            follower.userId.toString()
-          ),
+          followers: doc.followers.map((follower) => ({
+            username: follower.username,
+            userId: follower.userId.toString(),
+          })),
           subscription: doc.subscription,
           banner: doc.banner,
           video: doc.video.map((videoObj) => ({
@@ -86,7 +139,7 @@ export class channelRepository implements IChannelRepository {
       throw error;
     }
   };
-  
+
   unfollowChannel = async (
     userid: string,
     channelData: Channel
@@ -96,7 +149,7 @@ export class channelRepository implements IChannelRepository {
       if (!user) {
         throw new Error("User not found");
       }
-  
+
       const updateOperation = {
         $pull: {
           followers: {
@@ -104,13 +157,13 @@ export class channelRepository implements IChannelRepository {
           },
         },
       };
-  
+
       const updatedMongooseChannel = await ChannelModel.findOneAndUpdate(
         { _id: channelData._id },
         updateOperation,
         { new: true }
       );
-  
+
       if (updatedMongooseChannel) {
         const updatedChannel: Channel = {
           _id: updatedMongooseChannel._id.toString(),
@@ -129,7 +182,7 @@ export class channelRepository implements IChannelRepository {
           lives: updatedMongooseChannel.lives,
           isblocked: updatedMongooseChannel.isblocked,
         };
-  
+
         return updatedChannel;
       }
       return null;
@@ -169,7 +222,7 @@ export class channelRepository implements IChannelRepository {
       if (!user) {
         throw new Error("User not found");
       }
-  
+
       // Prepare the update operation
       const updateOperation = {
         $push: {
@@ -179,13 +232,13 @@ export class channelRepository implements IChannelRepository {
           },
         },
       };
-  
+
       const updatedMongooseChannel = await ChannelModel.findOneAndUpdate(
         { _id: channelData._id },
         updateOperation,
         { new: true }
       );
-  
+
       if (updatedMongooseChannel) {
         const updatedChannel: Channel = {
           _id: updatedMongooseChannel._id.toString(),
@@ -204,7 +257,7 @@ export class channelRepository implements IChannelRepository {
           lives: updatedMongooseChannel.lives,
           isblocked: updatedMongooseChannel.isblocked,
         };
-  
+
         return updatedChannel;
       }
       return null;
@@ -288,46 +341,43 @@ export class channelRepository implements IChannelRepository {
   };
 
   getChannel = async (id: string): Promise<Channel | null> => {
-  try {
-    // Convert the string ID to a MongoDB ObjectID
-    const userId = new mongoose.Types.ObjectId(id);
+    try {
+      // Convert the string ID to a MongoDB ObjectID
+      const userId = new mongoose.Types.ObjectId(id);
 
-    // Retrieve the channel based on the user ID
-    const channel = await ChannelModel.findOne({ username: userId });
+      // Retrieve the channel based on the user ID
+      const channel = await ChannelModel.findOne({ username: userId });
 
-    // If no channel is found, return null
-    if (!channel) {
-      return null;
+      // If no channel is found, return null
+      if (!channel) {
+        return null;
+      }
+
+      const mappedChannel: Channel = {
+        _id: channel._id.toString(),
+        username: channel.username.toString(),
+        channelName: channel.channelName,
+        followers: channel.followers.map((follower) => ({
+          username: follower.username,
+          userId: follower.userId.toString(),
+        })),
+        subscription: channel.subscription,
+        banner: channel.banner,
+        video: channel.video.map((videoObj) => ({
+          url: videoObj.url.toString(),
+          views: videoObj.views || 0,
+        })),
+        lives: channel.lives,
+        isblocked: channel.isblocked,
+      };
+
+      // Return the mapped channel data
+      return mappedChannel;
+    } catch (error) {
+      // Log any errors
+      console.error("Error fetching channel:", error);
+      // Throw the error for handling further up the chain
+      throw error;
     }
-
-    const mappedChannel: Channel = {
-      _id: channel._id.toString(),
-      username: channel.username.toString(),
-      channelName: channel.channelName,
-      followers: channel.followers.map((follower) => ({
-        username: follower.username,
-        userId: follower.userId.toString(),
-      })),
-      subscription: channel.subscription,
-      banner: channel.banner,
-      video: channel.video.map((videoObj) => ({
-        url: videoObj.url.toString(),
-        views: videoObj.views || 0,
-      })),
-      lives: channel.lives,
-      isblocked: channel.isblocked,
-    };
-
-    // Return the mapped channel data
-    return mappedChannel;
-  } catch (error) {
-    // Log any errors
-    console.error("Error fetching channel:", error);
-    // Throw the error for handling further up the chain
-    throw error;
-  }
-};
-
-
-
+  };
 }

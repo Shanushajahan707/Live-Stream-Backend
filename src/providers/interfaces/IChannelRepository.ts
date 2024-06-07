@@ -11,5 +11,7 @@ export interface IChannelRepository {
   getFullFollowChannels(userid:string):Promise<Channel[]|null>
   getFollowChannel(channelId:string):Promise<Channel|null>
   shortInDb(channelId:string,location:string):Promise<Channel|null>
+  updateViews(channelId: string, location: string): Promise<Channel | null>;
+  onSearchChannels(query:string,userid:string):Promise<Channel[]|null>
 
 }

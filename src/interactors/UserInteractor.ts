@@ -13,13 +13,24 @@ export class UserInteractor implements IUserInteractor {
   constructor(repository: IUserRepository) {
     this._repostitory = repository;
   }
-  forgotPassMailSent=async(email: string): Promise<{isMailSent:string,otp:number}>=> {
+ 
+
+  isUserBlocked = async (userid: string): Promise<boolean> => {
     try {
-      return this._repostitory.forgotPassMailSent(email)
+      return this._repostitory.isUserBlocked(userid);
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
+  forgotPassMailSent = async (
+    email: string
+  ): Promise<{ isMailSent: string; otp: number }> => {
+    try {
+      return this._repostitory.forgotPassMailSent(email);
+    } catch (error) {
+      throw error;
+    }
+  };
   googleFindOne = async (email: string): Promise<googleUser | null> => {
     try {
       const existingUserDoc = await this._repostitory.findByOne(email);
@@ -35,8 +46,8 @@ export class UserInteractor implements IUserInteractor {
         username: existingUserDoc.username,
         email: existingUserDoc.email,
         dateofbirth: existingUserDoc.dateofbirth,
-        role:existingUserDoc.role,
-        _id: existingUserDoc._id
+        role: existingUserDoc.role,
+        _id: existingUserDoc._id,
       };
 
       return existingUser;
@@ -68,10 +79,10 @@ export class UserInteractor implements IUserInteractor {
     googleId: number,
     username: string,
     email: string,
-    role:string,
+    role: string,
     _id: string
   ): Promise<string> => {
-    try { 
+    try {
       const gUser = {
         googleId,
         username,
@@ -79,7 +90,9 @@ export class UserInteractor implements IUserInteractor {
         role,
         _id,
       };
-      const token = jwt.sign(gUser, process.env.SECRET_LOGIN as string, { expiresIn: '2h' })
+      const token = jwt.sign(gUser, process.env.SECRET_LOGIN as string, {
+        expiresIn: "2h",
+      });
       return token;
     } catch (error) {
       console.log("error", error);
@@ -132,6 +145,20 @@ export class UserInteractor implements IUserInteractor {
       throw error;
     }
   };
+  verifyRefreshToken = async (token: string): Promise<boolean> => {
+    try {
+      return await this._repostitory.verifyRefreshToken(token);
+    } catch (error) {
+      throw error;
+    }
+  };
+  generatenewtoken=async(token:string): Promise<string|null> =>{
+    try {
+      return await this._repostitory.generatenewtoken(token)
+    } catch (error) {
+      throw error
+    }
+  }
   // return the matching password
   checkpass = async (email: string, password: string) => {
     try {

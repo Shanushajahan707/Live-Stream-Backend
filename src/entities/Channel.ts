@@ -17,3 +17,4 @@ export interface Channel {
   readonly lives: string[];
   readonly isblocked: boolean;
 }
+

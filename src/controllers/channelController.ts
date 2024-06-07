@@ -11,12 +11,12 @@ export class ChannelController {
 
   onGetChannels = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("req user is ", req.user);
+      // console.log("req user is ", req.user);
       if (req.user) {
         const { _id } = req.user as { _id: string };
-        console.log("userid is", _id);
+        // console.log("userid is", _id);
         const channeldata = await this._interactor.getChannel(_id);
-        console.log("chanenl data is ", channeldata);
+        // console.log("chanenl data is ", channeldata);
         if (channeldata) {
           return res
             .status(ResponseStatus.OK)
@@ -185,12 +185,10 @@ export class ChannelController {
           .status(ResponseStatus.BadRequest)
           .json({ message: "Unable to fetch the channel" });
       }
-      res
-        .status(ResponseStatus.Accepted)
-        .json({
-          message: "Fetched followed Channels",
-          follwedChannels: followedChannels,
-        });
+      res.status(ResponseStatus.Accepted).json({
+        message: "Fetched followed Channels",
+        follwedChannels: followedChannels,
+      });
     } catch (error) {
       next(error);
     }
@@ -222,30 +220,67 @@ export class ChannelController {
     try {
       console.log("Channel ID through params:", req.params.channelId);
       console.log("File is:", req.file);
-  
-      if (!req.file || !req.file.mimetype.startsWith('video/mp4')) {
-        return res.status(400).json({ message: "Invalid file type. Please upload a .mp4 file." });
+
+      if (!req.file || !req.file.mimetype.startsWith("video/mp4")) {
+        return res
+          .status(400)
+          .json({ message: "Invalid file type. Please upload a .mp4 file." });
       }
-  
+
       const isUploaded = await this._interactor.uploadShort(req.file);
       if (!isUploaded) {
         return res.status(400).json({ message: "Error while uploading" });
       }
-  
+
       console.log("Uploaded:", isUploaded);
-      const uploadOnDp = await this._interactor.shortInDb(req.params.channelId, isUploaded);
-      console.log('Upload on DB:', uploadOnDp);
+      const uploadOnDp = await this._interactor.shortInDb(
+        req.params.channelId,
+        isUploaded
+      );
+      console.log("Upload on DB:", uploadOnDp);
       if (uploadOnDp) {
-        return res.status(202).json({ message: "Uploading done",uploadOnDp });
+        return res.status(202).json({ message: "Uploading done", uploadOnDp });
       }
     } catch (error) {
-      console.error('Server error:', error);
+      console.error("Server error:", error);
       next(error);
     }
-  }
-  
-
-
-
-
+  };
+  onUpdateViews = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      console.log("Channel ID through params:", req.params.channelId);
+      console.log("File is:", req.body.videourl);
+      const updatedviews = await this._interactor.updateViews(
+        req.params.channelId,
+        req.body.videourl
+      );
+      if (!updatedviews) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "updated views" });
+      }
+      return res
+        .status(ResponseStatus.OK)
+        .json({ message: "views updated", channel: updatedviews });
+    } catch (error) {
+      console.error("Server error:", error);
+      next(error);
+    }
+  };
+  onSearchChannel = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = req.body.query;
+      const { _id } = req.user as { _id: string };
+      const channels=await this._interactor.onSearchChannels(query,_id)
+      if(!channels){
+        return res.status(ResponseStatus.BadRequest).json({message:"not found"})
+      }
+      console.log('channel are',channels.length);
+      res.status(ResponseStatus.OK).json({message:"Search Done",channels:channels})
+      console.log("query", query);
+    } catch (error) {
+      console.error("Server error:", error);
+      next(error);
+    }
+  };
 }
