@@ -236,7 +236,7 @@ export class UserRepository implements IUserRepository {
       };
       // console.log("payload is", plainPayload);
       const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string, {
-        expiresIn: "2h",
+        expiresIn: "20s",
       });
       return token;
     } catch (error) {
@@ -258,7 +258,7 @@ export class UserRepository implements IUserRepository {
       };
       // console.log("payload is", plainPayload);
       const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string, {
-        expiresIn: "10d",
+        expiresIn: "2d",
       });
       return token;
     } catch (error) {
