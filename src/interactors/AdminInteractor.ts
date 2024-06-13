@@ -9,6 +9,20 @@ export class AdminInteractor implements IAdminInteractor {
   constructor(repository: IAdminRepository) {
     this._repository = repository;
   }
+  getChannelsCount=async(): Promise<number | null> =>{
+    try {
+      return await this._repository.getChannelsCount()
+    } catch (error) {
+      throw error
+    }
+  }
+  getUsersCount=async(): Promise<number | null> =>{
+    try {
+      return await this._repository.getUsersCount()
+    } catch (error) {
+     throw error 
+    }
+  }
   getUserOne=async(userId: string): Promise<User | null> =>{
     try {
       return await this._repository.getUserOne(userId)

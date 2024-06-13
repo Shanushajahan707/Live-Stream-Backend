@@ -23,8 +23,8 @@ export function configureSocket(expressServer: httpServer) {
     console.log("New client connected", socket.id);
 
     socket.on("join room", (data) => {
-      console.log('data is ',data)
-      const { room, role } = data;
+      const { room, role, username } = data;
+      console.log('joined username is',username);
       if (!rooms[room]) {
         rooms[room] = [];
       }
@@ -40,6 +40,17 @@ export function configureSocket(expressServer: httpServer) {
       }
       consoleLogRoomParticipants(room);
     });
+
+    socket.on("chat message", (data) => {
+      console.log('chat data form the signel server',data);
+      const { room, message, username } = data;
+      const currentTime = new Date();
+      const options = { timeZone: 'Asia/Kolkata' }
+      const localTimeString = currentTime.toLocaleString('en-US', options);
+      io.to(room).emit("chat message", { username, message, timestamp:localTimeString });
+    });
+    
+    
 
     socket.on("offer", (data) => {
       io.to(data.id).emit("offer", { id: socket.id, offer: data.offer });

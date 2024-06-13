@@ -101,4 +101,36 @@ export class AdminController {
       next(error);
     }
   };
+  onGetUsersCount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userscount = await this._interactor.getUsersCount()
+      if(!userscount){
+        return res.status(ResponseStatus.BadRequest).json({message:"Can't find the usercount"})
+      }
+      // console.log('usrcount',userscount);
+      res.status(ResponseStatus.Accepted).json({message:"fetch user count",userCount:userscount})
+    } catch (error) {
+      next(error);
+    }
+  };
+  onGetChannelsCount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const channelCount = await this._interactor.getChannelsCount()
+      if(!channelCount){
+        return res.status(ResponseStatus.BadRequest).json({message:"Can't find the channelcount"})
+      }
+      // console.log('channelcount',channelCount);
+      res.status(ResponseStatus.Accepted).json({message:"fetch user count",channelCount})
+    } catch (error) {
+      next(error);
+    }
+  };
 }

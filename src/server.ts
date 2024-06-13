@@ -12,8 +12,8 @@ connectDatabase()
 const port = process.env.PORT || 3001;
 
 app.use('/', userRoutes);
-app.use('/',adminRoutes)
-app.use('/',channelRoutes)
+app.use('/admin',adminRoutes)
+app.use('/channel',channelRoutes)
 
 
 

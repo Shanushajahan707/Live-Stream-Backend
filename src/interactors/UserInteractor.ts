@@ -13,7 +13,41 @@ export class UserInteractor implements IUserInteractor {
   constructor(repository: IUserRepository) {
     this._repostitory = repository;
   }
- 
+  changePass=async(email: string, password: string): Promise<boolean | null> =>{
+   try {
+      return await this._repostitory.changePass(email,password)    
+   } catch (error) {
+    throw error
+   }
+  }
+
+  // checkOldPass = async (email: string, password: string): Promise<boolean> => {
+  //   try {
+  //     const oldPassword = await this._repostitory.findByOne(email);
+  //     if (oldPassword) {
+  //       const isPassMatch = await bcrypt.compare(password, oldPassword.password);
+  //       return isPassMatch;
+  //     }
+  //     return false; 
+  //   } catch (error) {
+  //     throw error
+  //   }
+  // };
+
+  forgotPassOtpGet=async(email: string): Promise<{ otp: number|null }> =>{
+    try {
+      return await this._repostitory.forgotPassOtpGet(email)
+    } catch (error) {
+      throw error
+    }
+  }
+  forgotPassOtp = async (email: string, otp: number): Promise<boolean> => {
+    try {
+    return await this._repostitory.forgotPassOtp(email,otp)
+    } catch (error) {
+      throw error
+    }
+  };
 
   isUserBlocked = async (userid: string): Promise<boolean> => {
     try {
@@ -109,20 +143,20 @@ export class UserInteractor implements IUserInteractor {
     }
   };
   // this  method return the another method from the repositry
-  checkotp = async (
+  checkOtp = async (
     value: number
   ): Promise<{ isValidOTP: boolean; isExpired: boolean }> => {
     try {
-      return await this._repostitory.otpcheck(value);
+      return await this._repostitory.otpCheck(value);
     } catch (error) {
       console.error("Error in checkotp:", error);
       throw error;
     }
   };
   // this  method return if the mail sent or not
-  sendmail = async (email: string): Promise<string> => {
+  sendMail = async (email: string): Promise<string> => {
     try {
-      return await this._repostitory.sendmail(email);
+      return await this._repostitory.sendMail(email);
     } catch (error) {
       console.error("Error in sendmail:", error);
       throw error;
@@ -152,17 +186,17 @@ export class UserInteractor implements IUserInteractor {
       throw error;
     }
   };
-  generatenewtoken=async(token:string): Promise<string|null> =>{
+  generateNewToken = async (token: string): Promise<string | null> => {
     try {
-      return await this._repostitory.generatenewtoken(token)
+      return await this._repostitory.generateNewToken(token);
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
   // return the matching password
-  checkpass = async (email: string, password: string) => {
+  checkPass = async (email: string, password: string) => {
     try {
-      return await this._repostitory.passwordmatch(email, password);
+      return await this._repostitory.passwordMatch(email, password);
     } catch (error) {
       console.error("Error in checkpass:", error);
       throw error;

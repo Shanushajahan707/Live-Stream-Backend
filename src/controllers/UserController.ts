@@ -12,8 +12,7 @@ dotenv.config();
 
 export class UserController {
   private _interactor: IUserInteractor;
-  private userdatas!: User;
-
+  private _userdatas!: User;
   //the interactor help to access the user interface repository
   constructor(interactor: IUserInteractor) {
     this._interactor = interactor;
@@ -48,7 +47,7 @@ export class UserController {
       const userExist = await this._interactor.login(user.email);
 
       if (userExist) {
-        const check = await this._interactor.checkpass(
+        const check = await this._interactor.checkPass(
           user.email,
           user.password
         );
@@ -126,29 +125,36 @@ export class UserController {
       }
       console.log("mail sent", isMailSent);
       console.log("otp is", isMailSent.otp);
-      req.session.otpValue = isMailSent.otp;
-      const sample = { otp: 1234 };
-      req.session.otpValue = sample.otp;
-      console.log("seson value is", req.session.otpValue);
-      return res
-        .status(ResponseStatus.Accepted)
-        .json({ message: `Check ${req.body.registeredemail}` });
+      // const sample = { otp: 1234 };
+      // req.session.otpValue = sample.otp;
+      const isOtpStored = await this._interactor.forgotPassOtp(
+        req.body.registeredemail,
+        isMailSent.otp
+      );
+      if (isOtpStored) {
+        return res.status(ResponseStatus.Accepted).json({
+          message: `Check ${req.body.registeredemail}`,
+          email: req.body.registeredemail,
+        });
+      }
     } catch (error) {
       next(error);
     }
   };
-  onSendOtp = async (req: Request, res: Response, next: NextFunction) => {
+  onSendOtpCheck = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.body) {
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: "Enter the proper data" });
       }
+
+      const otpValue = await this._interactor.forgotPassOtpGet(req.body.email);
+
       console.log("Entered OTP is", req.body.otpValue);
-      const otpValue = req.session.otpValue;
-      console.log("Session OTP is", req.session.otpValue);
-      console.log("otp Value", otpValue);
-      if (parseInt(req.body.otpValue) !== otpValue) {
+      console.log("otp Value from db", otpValue.otp);
+
+      if (otpValue.otp !== parseInt(req.body.otpValue)) {
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: "Invalid Otp", otpvalue: false });
@@ -156,6 +162,45 @@ export class UserController {
       res
         .status(ResponseStatus.OK)
         .json({ message: "valid otp", otpvalue: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+  onChangePassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      if (!req.body) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Enter the proper data" });
+      }
+      console.log("req body", req.body);
+      // const isOldPassMatch = await this._interactor.checkOldPass(
+      //   req.body.email,
+      //   req.body.changePasswordForm.oldPassword
+      // );
+      // if (!isOldPassMatch) {
+      //   return res
+      //     .status(ResponseStatus.BadRequest)
+      //     .json({ message: "Old Password Mismatch" });
+      // }
+
+      const isPassChanged = await this._interactor.changePass(
+        req.body.email,
+        req.body.changePasswordForm.confirmPassword
+      );
+      if (!isPassChanged) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Error while changing password" });
+      }
+      res
+        .status(ResponseStatus.Created)
+        .json({ message: "Passoword Changed Successfully" });
+      console.log("Passoword Changed Successfully");
     } catch (error) {
       next(error);
     }
@@ -194,7 +239,7 @@ export class UserController {
 
       const hashedPassword = bcrypt.hashSync(password, 10);
 
-      this.userdatas = {
+      this._userdatas = {
         username,
         email,
         password: hashedPassword,
@@ -203,7 +248,7 @@ export class UserController {
         isblocked: false,
       };
 
-      const data = await this._interactor.login(this.userdatas.email);
+      const data = await this._interactor.login(this._userdatas.email);
 
       if (data) {
         return res
@@ -220,12 +265,12 @@ export class UserController {
           .json({ message: "You must be at least 18 years old to sign up" });
       }
 
-      const mailsent = await this._interactor.sendmail(this.userdatas.email);
+      const mailsent = await this._interactor.sendMail(this._userdatas.email);
       console.log("sent ", mailsent);
 
       return res
         .status(ResponseStatus.OK)
-        .json({ message: `Check ${this.userdatas.email}` });
+        .json({ message: `Check ${this._userdatas.email}` });
     } catch (error) {
       next(error);
     }
@@ -240,7 +285,7 @@ export class UserController {
           .json({ message: "Enter the OTP properly" });
       }
 
-      const otpCheckResult = await this._interactor.checkotp(req.body);
+      const otpCheckResult = await this._interactor.checkOtp(req.body);
       console.log("full otp result", otpCheckResult);
       if (otpCheckResult.isValidOTP) {
         console.log("valid otp controler", otpCheckResult.isValidOTP);
@@ -251,11 +296,11 @@ export class UserController {
             .json({ message: "Otp Expired" });
         }
         const insert = await this._interactor.signup(
-          this.userdatas.username,
-          this.userdatas.email,
-          this.userdatas.password,
-          this.userdatas.dateofbirth,
-          this.userdatas.isblocked
+          this._userdatas.username,
+          this._userdatas.email,
+          this._userdatas.password,
+          this._userdatas.dateofbirth,
+          this._userdatas.isblocked
         );
         if (insert) {
           return res
@@ -286,7 +331,7 @@ export class UserController {
       console.log("mail ", email);
 
       if (email) {
-        const mailsent = await this._interactor.sendmail(email);
+        const mailsent = await this._interactor.sendMail(email);
         if (mailsent) {
           console.log("sent", mailsent);
           return res
@@ -320,20 +365,30 @@ export class UserController {
     try {
       const { refreshToken } = req.body;
       if (!refreshToken) {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Refresh token is missing" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Refresh token is missing" });
       }
 
-      const isTokenValid = await this._interactor.verifyRefreshToken(refreshToken);
+      const isTokenValid = await this._interactor.verifyRefreshToken(
+        refreshToken
+      );
       if (!isTokenValid) {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid refresh token" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid refresh token" });
       }
 
-      const newAccessToken = await this._interactor.generatenewtoken(refreshToken);
+      const newAccessToken = await this._interactor.generateNewToken(
+        refreshToken
+      );
       if (!newAccessToken) {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Error generating token" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Error generating token" });
       }
 
-      console.log('New token created:', newAccessToken);
+      console.log("New token created:", newAccessToken);
       return res.status(ResponseStatus.Accepted).json({
         accessToken: newAccessToken,
         message: "Token refreshed",
@@ -359,7 +414,7 @@ export class UserController {
           role,
           _id
         );
-        console.log("token", token);
+        // console.log("token", token);
         res.cookie("authResponse", JSON.stringify({ message, user, token }));
         return res.redirect("http://localhost:4200/login");
       }

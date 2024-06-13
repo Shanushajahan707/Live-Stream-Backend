@@ -5,6 +5,40 @@ import { UserModel } from "../model/userModel";
 import { IAdminRepository } from "../providers/interfaces/IAdminRepository";
 
 export class AdminRepository implements IAdminRepository {
+
+  getChannelsCount = async (): Promise<number | null> => {
+    try {
+      const result = await ChannelModel.aggregate([
+        { $count: "totalChannels" }
+      ]);
+  
+      if (result.length > 0) {
+        return result[0].totalChannels;
+      } else {
+        return 0;
+      }
+    } catch (error) {
+      console.error('Error in getChannelCount:', error);
+      throw error;
+    }
+  }
+  getUsersCount = async (): Promise<number | null> => {
+    try {
+      const result = await UserModel.aggregate([
+        { $match: { role: { $ne: "Admin" } } }, 
+        { $count: "totalUsers" }
+      ]);
+  
+      if (result.length > 0) {
+        return result[0].totalUsers;
+      } else {
+        return 0;
+      }
+    } catch (error) {
+      console.error('Error in getUsersCount:', error);
+      throw error;
+    }
+  };
   getUserOne=async(userId: string): Promise<User | null> =>{
     try {
       return await UserModel.findById(userId)
@@ -67,7 +101,7 @@ export class AdminRepository implements IAdminRepository {
           isblocked,
           _id,
         } = channel;
-  
+        console.log('channel',channel);
         return {
           _id: _id.toString(),
           username:  username.username,
@@ -86,7 +120,8 @@ export class AdminRepository implements IAdminRepository {
           isblocked,
         } as Channel;
       });
-  
+      console.log('all channels',allChannels);
+
       const totalcount = await ChannelModel.countDocuments();
       return { allChannels, totalcount };
     } catch (error) {

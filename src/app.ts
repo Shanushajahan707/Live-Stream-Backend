@@ -1,13 +1,12 @@
-import express, { Request, Response, NextFunction } from "express";
+import express  from "express";
 import cors from "cors";
-import session from "express-session"; // Use lowercase 'session' import
+import session from "express-session"; 
 import dotenv from "dotenv";
 import path from "path";
 import { Server as httpServer } from "http";
 import passport from "passport";
 import "./auth/passport"; 
 import { configureSocket } from "./socket/signellingServer";
-import './utils/session'; 
 
 dotenv.config();
 const app = express();
@@ -20,11 +19,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Session middleware
 app.use(session({
+  secret: 'your-secret-key',
   resave: false,
   saveUninitialized: true,
-  secret: "secret",
-  cookie: { secure: false } // Use secure: true in production with HTTPS
-}));
+  cookie: { secure: false }
+}));;
 
 app.use(passport.initialize());
 app.use(passport.session());

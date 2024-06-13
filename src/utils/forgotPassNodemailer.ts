@@ -19,6 +19,7 @@ export const sendOtpEmailForForgotPass = async (email: string,otp:number): Promi
             <p>You have requested to reset your password. Please use the following OTP to proceed:</p>
             <p style="font-size: 24px; font-weight: bold; text-align: center;">${otp}</p>
             <p>Then, click the button below to reset your password:</p>
+            <p>The otp will expire after one minute</p>
             <a href="http://localhost:4200/forgot-password" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; text-align: center;">Reset Password</a>
             <div style="margin-top: 20px;">
               <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT38GdlfKO3i3cHMzxTvbK_ALOzkeiPpY7IgA&s" alt="Your Project Image" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">

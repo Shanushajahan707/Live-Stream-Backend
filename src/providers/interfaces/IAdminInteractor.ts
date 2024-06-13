@@ -9,4 +9,6 @@ export interface IAdminInteractor {
     id: string
   ): Promise<{ update: boolean; channel: Channel | null }>;
   getUserOne(userId:string):Promise<User|null>
+  getUsersCount():Promise<number|null>
+  getChannelsCount():Promise<number|null>
 }

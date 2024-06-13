@@ -8,18 +8,63 @@ import { ChannelModel } from "../model/channelModel";
 import { generateRandomString } from "../utils/generateOtp";
 import { sendOtpEmail } from "../utils/newUserNodemailer";
 import { sendOtpEmailForForgotPass } from "../utils/forgotPassNodemailer";
+import { otpModel } from "../model/otpSession";
 
 dotenv.config();
 
 export class UserRepository implements IUserRepository {
+  changePass = async (
+    email: string,
+    password: string
+  ): Promise<boolean | null> => {
+    try {
+      const user = await UserModel.findOne({ email });
+      if (user) {
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        user.password = hashedPassword;
+        await user.save();
+        return true;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+  forgotPassOtpGet = async (email: string): Promise<{ otp: number | null }> => {
+    try {
+      const otpRecord = await otpModel.findOne({ email });
+      if (otpRecord) {
+        return { otp: otpRecord.otp };
+      }
+      return { otp: null };
+    } catch (error) {
+      throw error;
+    }
+  };
 
+  forgotPassOtp = async (email: string, otp: number): Promise<boolean> => {
+    try {
+      const otpRecord = await otpModel.findOne({ email });
+      if (otpRecord) {
+        otpRecord.otp = otp;
+        await otpRecord.save();
+      } else {
+        const newOtpRecord = new otpModel({ otp, email });
+        await newOtpRecord.save();
+      }
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  };
 
   isUserBlocked = async (userid: string): Promise<boolean> => {
     try {
       if (!userid) {
         return false;
       }
-      console.log(userid,'user id');
+      console.log(userid, "user id");
       const isUserBlocked = await UserModel.findById(userid);
       console.log(isUserBlocked);
       if (isUserBlocked?.isblocked) {
@@ -159,7 +204,7 @@ export class UserRepository implements IUserRepository {
   };
 
   //checing otp
-  otpcheck = async (
+  otpCheck = async (
     value: number
   ): Promise<{ isValidOTP: boolean; isExpired: boolean }> => {
     try {
@@ -201,7 +246,7 @@ export class UserRepository implements IUserRepository {
   };
 
   //nodemailer and genrate otp
-  sendmail = async (email: string): Promise<string> => {
+  sendMail = async (email: string): Promise<string> => {
     try {
       // console.log("emal form the repositories is", email);
       // console.log("_jwtotp form the repositories is", this._jwtotp);
@@ -236,7 +281,7 @@ export class UserRepository implements IUserRepository {
       };
       // console.log("payload is", plainPayload);
       const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string, {
-        expiresIn: "20s",
+        expiresIn: "1h",
       });
       return token;
     } catch (error) {
@@ -272,10 +317,10 @@ export class UserRepository implements IUserRepository {
       return new Promise((resolve) => {
         jwt.verify(token, process.env.SECRET_LOGIN as string, (err, user) => {
           if (err) {
-            return resolve(false); 
+            return resolve(false);
           }
           if (user) {
-            console.log('refresh toekn verified');
+            console.log("refresh toekn verified");
             return resolve(true);
           }
         });
@@ -284,13 +329,13 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   };
-  generatenewtoken = (token: string): Promise<string | null> => {
+  generateNewToken = (token: string): Promise<string | null> => {
     return new Promise((resolve) => {
       jwt.verify(token, process.env.SECRET_LOGIN as string, (err, decoded) => {
         if (err || !decoded) {
-          return resolve(null); 
+          return resolve(null);
         }
-  
+
         const user = decoded as User;
 
         // Define the payload to be signed
@@ -303,20 +348,20 @@ export class UserRepository implements IUserRepository {
           isblocked: user.isblocked,
           _id: user._id,
         };
-  
+
         // Create a new access token with the plainPayload
         const newAccessToken = jwt.sign(
           plainPayload,
           process.env.SECRET_LOGIN as string,
-          { expiresIn: '2h' }
+          { expiresIn: "2h" }
         );
-        console.log('new token generated repositroy');
+        console.log("new token generated repositroy");
         resolve(newAccessToken); // Resolve with the new access token
       });
     });
   };
   //check if the pasword matching
-  passwordmatch = async (email: string, password: string) => {
+  passwordMatch = async (email: string, password: string) => {
     try {
       const user = await UserModel.findOne({ email });
       if (user) {

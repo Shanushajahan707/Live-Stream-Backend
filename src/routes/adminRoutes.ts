@@ -14,5 +14,7 @@ router.put("/blockuser/:id", controller.onBlockUser.bind(controller));
 router.get("/getchannels", controller.onGetFullChannels.bind(controller));
 router.put("/blockchannel/:id", controller.onBlockChannel.bind(controller));
 router.get("/getUserProfileAdmin/:userid", controller.onGetUserProfile.bind(controller));
+router.get("/getuserscount", controller.onGetUsersCount.bind(controller));
+router.get("/getchannelscount", controller.onGetChannelsCount.bind(controller));
 
 export default router;
