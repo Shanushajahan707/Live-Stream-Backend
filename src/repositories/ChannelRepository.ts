@@ -1,16 +1,225 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { Channel } from "../entities/Channel";
 import { ChannelModel } from "../model/channelModel";
 import { IChannelRepository } from "../providers/interfaces/IChannelRepository";
 import { UserModel } from "../model/userModel";
+import { ChannelSubscriptionUser } from "../entities/Subscription";
+import { ChannelMembershipModel } from "../model/chennelMembership";
+import { channelSubscriptionModel } from "../model/channelSubscription";
 
 export class channelRepository implements IChannelRepository {
+  fetRevenueChart = async (
+    userId: string
+  ): Promise<{ monthlySubscription: { [key: string]: number } | null, totalAmount: number }> => {
+    try {
+      const userChannel = await ChannelModel.findOne({
+        username: userId,
+      }).exec();
+  
+      if (!userChannel) {
+        throw new Error("User channel not found");
+      }
+  
+      const channelId = userChannel._id;
+  
+      const memberships = await ChannelMembershipModel.find({
+        "members.channelId": channelId,
+      })
+        .populate({
+          path: "members.channelPlanId",
+          model: "ChannelSubscription",
+          select: "price",
+        })
+        .exec();
+  
+      const monthlySubscription: { [key: string]: number } = {};
+      let totalAmount = 0;
+  
+      memberships.forEach((subscriber) => {
+        const date = new Date(subscriber.createdAt);
+        const subscriptionMonth = `${date.getFullYear()}-${(date.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}`;
+  
+        const planPrice = subscriber.members.channelPlanId.price;
+        totalAmount += planPrice;
+  
+        if (monthlySubscription[subscriptionMonth]) {
+          monthlySubscription[subscriptionMonth] += planPrice;
+        } else {
+          monthlySubscription[subscriptionMonth] = planPrice;
+        }
+      });
+      
+      return { monthlySubscription: monthlySubscription, totalAmount: totalAmount };
+    } catch (error) {
+      throw error;
+    }
+  };
 
-   onSearchChannels = async (query: string, userid: string): Promise<Channel[] | null> => {
+
+  getAllSubscribedMembers = async (
+    channelId: string,
+    page: number,
+    limit: number
+  ): Promise<{
+    subscribedmembers: ChannelSubscriptionUser[] | null;
+    totalcount: number;
+  }> => {
+    try {
+      const skip = (page - 1) * limit;
+      const subscribedMembers = await ChannelMembershipModel.find({
+        "members.channelId": new mongoose.Types.ObjectId(channelId),
+      })
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: "members.userId",
+          select: "username",
+        })
+        .populate({
+          path: "members.userChannelId", // Populate userChannelId instead of channelId
+          model: "Channel", // Assuming the model name for ChannelModel is "Channel"
+          select: "channelName", // Select fields as needed
+        })
+        .populate({
+          path: "members.channelPlanId",
+          model: "ChannelSubscription",
+          select: "month price",
+        })
+        .exec();
+        const transformedMembers: ChannelSubscriptionUser[] = subscribedMembers.map((member) => ({
+          _id: member._id,
+        members: {
+          userId: member.members.userId.username,
+          userChannelId: member.members.userChannelId.channelName,
+          channelId: member.members.channelId.toString(),
+          channelPlanId: member.members.channelPlanId.month,
+          paymentId: member.members.paymentId,
+        },
+        createdAt: member.createdAt,
+        endsIn: member.endsIn,
+      }));
+      
+    
+      const totalcount = await ChannelMembershipModel.countDocuments({
+        "members.channelId": new mongoose.Types.ObjectId(channelId),
+      });
+  
+      return { subscribedmembers: transformedMembers, totalcount: totalcount };
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  subscribeChannel = async (
+    userId: string,
+    channelId: string,
+    planId: string,
+    paymentId: string
+  ): Promise<ChannelSubscriptionUser | null> => {
+    try {
+      const planExists = await channelSubscriptionModel.findById(planId);
+      if (!planExists) {
+        return null;
+      }
+
+      const userChannel = await ChannelModel.findOne({ username: userId });
+      if (!userChannel) {
+        throw new Error("User channel not found");
+      }
+
+      // Calculate the endsIn date based on the plan's month duration
+      const currentDate = new Date();
+      const endsInDate = new Date(currentDate);
+      endsInDate.setMonth(currentDate.getMonth() + planExists.month);
+
+      const newMembership = new ChannelMembershipModel({
+        members: {
+          userId: new Types.ObjectId(userId),
+          userChannelId: new Types.ObjectId(userChannel._id),
+          channelId: new Types.ObjectId(channelId),
+          channelPlanId: new Types.ObjectId(planId),
+          paymentId: paymentId,
+        },
+        createdAt: currentDate,
+        endsIn: endsInDate, // Add the calculated endsIn date
+      });
+
+      const savedMembership = await newMembership.save();
+      const result: ChannelSubscriptionUser = {
+        _id: savedMembership._id.toString(),
+        members: {
+          userId: savedMembership.members.userId.toString(),
+          userChannelId: savedMembership.members.userChannelId.toString(),
+          channelId: savedMembership.members.channelId.toString(),
+          channelPlanId: savedMembership.members.channelPlanId.toString(),
+          paymentId: savedMembership.members.paymentId,
+        },
+        createdAt: savedMembership.createdAt,
+        endsIn: savedMembership.endsIn, // Include the endsIn date in the result
+      };
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  isChannelMember = async (
+    userId: string,
+    channelId: string
+  ): Promise<ChannelSubscriptionUser | null> => {
+    try {
+      const isMember = await ChannelMembershipModel.findOne({
+        "members.userId": new mongoose.Types.ObjectId(userId),
+        "members.channelId": new mongoose.Types.ObjectId(channelId),
+      }).exec();
+
+      if (isMember) {
+        const currentDate = new Date();
+
+        if (isMember.endsIn < currentDate) {
+          // Subscription period is over, delete the membership
+          await ChannelMembershipModel.deleteOne({ _id: isMember._id })
+            .exec()
+            .then(() => {
+              console.log("membership deleted");
+            })
+            .catch(() => {
+              console.log("error in deletion");
+            });
+          return null;
+        }
+
+        // Subscription is still valid, return the membership details
+        return {
+          _id: isMember._id.toString(),
+          members: {
+            userId: isMember.members.userId.toString(),
+            userChannelId: isMember.members.userChannelId.toString(),
+            channelId: isMember.members.channelId.toString(),
+            channelPlanId: isMember.members.channelPlanId.toString(),
+            paymentId: isMember.members.paymentId,
+          },
+          createdAt: isMember.createdAt,
+          endsIn: isMember.endsIn,
+        };
+      } else {
+        return null;
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  onSearchChannels = async (
+    query: string,
+    userid: string
+  ): Promise<Channel[] | null> => {
     try {
       const channels = await ChannelModel.find({
         channelName: { $regex: query, $options: "i" },
-        username: { $ne: userid }
+        username: { $ne: userid },
       });
       if (channels.length > 0) {
         return channels;
@@ -20,7 +229,6 @@ export class channelRepository implements IChannelRepository {
       throw error;
     }
   };
-  
 
   updateViews = async (
     channelId: string,
@@ -129,8 +337,10 @@ export class channelRepository implements IChannelRepository {
             url: videoObj.url.toString(),
             views: videoObj.views || 0,
           })),
-          lives: doc.lives,
+          isLive: doc.isLive,
+          lastDateOfLive: doc.lastDateOfLive,
           isblocked: doc.isblocked,
+          liveRoom: doc?.liveRoom,
         };
       });
 
@@ -179,8 +389,10 @@ export class channelRepository implements IChannelRepository {
             url: videoObj.url.toString(),
             views: videoObj.views || 0,
           })),
-          lives: updatedMongooseChannel.lives,
+          isLive: updatedMongooseChannel.isLive,
+          lastDateOfLive: updatedMongooseChannel.lastDateOfLive,
           isblocked: updatedMongooseChannel.isblocked,
+          liveRoom: updatedMongooseChannel?.liveRoom,
         };
 
         return updatedChannel;
@@ -254,8 +466,10 @@ export class channelRepository implements IChannelRepository {
             url: videoObj.url.toString(),
             views: videoObj.views || 0,
           })),
-          lives: updatedMongooseChannel.lives,
+          isLive: updatedMongooseChannel.isLive,
+          lastDateOfLive: updatedMongooseChannel.lastDateOfLive,
           isblocked: updatedMongooseChannel.isblocked,
+          liveRoom: updatedMongooseChannel?.liveRoom,
         };
 
         return updatedChannel;
@@ -281,9 +495,11 @@ export class channelRepository implements IChannelRepository {
           url: videoObj.url.toString(),
           views: videoObj.views || 0,
         })),
-        lives: doc.lives,
+        isLive: doc.isLive,
+        lastDateOfLive: doc.lastDateOfLive,
         isblocked: doc.isblocked,
         _id: doc._id,
+        liveRoom: doc?.liveRoom,
       }));
 
       return channels;
@@ -333,8 +549,10 @@ export class channelRepository implements IChannelRepository {
         url: videoObj.url.toString(),
         views: videoObj.views || 0,
       })),
-      lives: newData.lives,
+      isLive: newData.isLive,
+      lastDateOfLive: newData.lastDateOfLive,
       isblocked: newData.isblocked,
+      liveRoom: newData?.liveRoom,
     };
 
     return channel;
@@ -367,8 +585,10 @@ export class channelRepository implements IChannelRepository {
           url: videoObj.url.toString(),
           views: videoObj.views || 0,
         })),
-        lives: channel.lives,
+        isLive: channel.isLive,
+        lastDateOfLive: channel.lastDateOfLive,
         isblocked: channel.isblocked,
+        liveRoom: channel?.liveRoom,
       };
 
       // Return the mapped channel data

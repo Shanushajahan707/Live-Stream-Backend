@@ -1,4 +1,5 @@
 import { Channel } from "../../entities/Channel";
+import { AdminWalletDocument, Subscription, channelSubscription } from "../../entities/Subscription";
 import { User } from "../../entities/User";
 
 export interface IAdminRepository {
@@ -11,5 +12,11 @@ export interface IAdminRepository {
   getUserOne(userId:string):Promise<User|null>
   getUsersCount():Promise<number|null>
   getChannelsCount():Promise<number|null>
+  insertSubscription(data:Subscription):Promise<Subscription|null>
+  getAllPlan():Promise<Subscription[]|null>
+  addChannelSubscription(data:channelSubscription):Promise<channelSubscription|null>
+  getAllChannelPlan():Promise<channelSubscription[]|null>
+  fetchMembership():Promise<{member:AdminWalletDocument[]|null,wallet:number}>
+  fetchDashboardData():Promise<{monthlySubscription: { [key: string]: number } | null}>
 
 }

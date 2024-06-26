@@ -1,4 +1,5 @@
 import { Channel } from "../entities/Channel";
+import { ChannelSubscriptionUser } from "../entities/Subscription";
 import { IChannelInteractor } from "../providers/interfaces/IChannelInteractor";
 import { IChannelRepository } from "../providers/interfaces/IChannelRepository";
 import { uploadS3Video } from "../utils/s3Uploader";
@@ -8,9 +9,38 @@ export class channelInteractor implements IChannelInteractor {
   constructor(private repository: IChannelRepository) {
     this._repository = repository;
   }
+  fetRevenueChart=async(userid: string): Promise<{ monthlySubscription: { [key: string]: number; } | null;totalAmount: number }> =>{
+    try {
+      return await this._repository.fetRevenueChart(userid)
+    } catch (error) {
+      throw error
+    }
+  }
+  getAllSubscribedMembers=async(channelId: string,page:number,limit:number): Promise<{subscribedmembers:ChannelSubscriptionUser[] | null,totalcount:number}> =>{
+    try {
+      return await this.repository.getAllSubscribedMembers(channelId,page,limit)
+    } catch (error) {
+      throw error
+    }
+  }
+  subscribeChannel=async(userid: string, channelId: string, planId: string,paymentId:string): Promise<ChannelSubscriptionUser | null> =>{
+    try {
+      return await this._repository.subscribeChannel(userid,channelId,planId,paymentId)
+    } catch (error) {
+      throw error
+    }
+  }
+  isChannelMember=async(userId: string,channelId:string): Promise<ChannelSubscriptionUser | null> =>{
+    try {
+      return await this._repository.isChannelMember(userId,channelId)
+    } catch (error) {
+      throw error
+    }
+  }
+ 
   onSearchChannels=async(query: string,userid:string): Promise<Channel[] | null> =>{
    try {
-    return this._repository.onSearchChannels(query,userid)
+    return await this._repository.onSearchChannels(query,userid)
    } catch (error) {
     throw error
    }

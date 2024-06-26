@@ -1,4 +1,5 @@
 import { Channel } from "../../entities/Channel";
+import { ChannelSubscriptionUser } from "../../entities/Subscription";
 
 export interface IChannelInteractor {
   getChannel(id: string): Promise<Channel | null>;
@@ -20,5 +21,26 @@ export interface IChannelInteractor {
   uploadShort(file: Express.Multer.File): Promise<string>;
   shortInDb(channelId: string, location: string): Promise<Channel | null>;
   updateViews(channelId: string, location: string): Promise<Channel | null>;
-  onSearchChannels(query:string,userid:string):Promise<Channel[]|null>
+  onSearchChannels(query: string, userid: string): Promise<Channel[] | null>;
+  isChannelMember(
+    userId: string,
+    channelId: string
+  ): Promise<ChannelSubscriptionUser | null>;
+  subscribeChannel(
+    userid: string,
+    channelId: string,
+    planId: string,
+    paymentId: string
+  ): Promise<ChannelSubscriptionUser | null>;
+  getAllSubscribedMembers(
+    channelId: string,
+    page: number,
+    limit: number
+  ): Promise<{
+    subscribedmembers: ChannelSubscriptionUser[] | null;
+    totalcount: number;
+  }>;
+  fetRevenueChart(
+    userid: string
+  ): Promise<{ monthlySubscription: { [key: string]: number } | null,totalAmount: number }>;
 }

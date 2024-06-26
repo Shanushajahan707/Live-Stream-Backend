@@ -248,8 +248,8 @@ export class ChannelController {
   };
   onUpdateViews = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("Channel ID through params:", req.params.channelId);
-      console.log("File is:", req.body.videourl);
+      // console.log("Channel ID through params:", req.params.channelId);
+      // console.log("File is:", req.body.videourl);
       const updatedviews = await this._interactor.updateViews(
         req.params.channelId,
         req.body.videourl
@@ -271,13 +271,138 @@ export class ChannelController {
     try {
       const query = req.body.query;
       const { _id } = req.user as { _id: string };
-      const channels=await this._interactor.onSearchChannels(query,_id)
-      if(!channels){
-        return res.status(ResponseStatus.BadRequest).json({message:"not found"})
+      const channels = await this._interactor.onSearchChannels(query, _id);
+      if (!channels) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "not found" });
       }
-      console.log('channel are',channels.length);
-      res.status(ResponseStatus.OK).json({message:"Search Done",channels:channels})
+      // console.log("channel are", channels.length);
+      res
+        .status(ResponseStatus.OK)
+        .json({ message: "Search Done", channels: channels });
       console.log("query", query);
+    } catch (error) {
+      console.error("Server error:", error);
+      next(error);
+    }
+  };
+  onIsMember = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { _id } = req.user as { _id: string };
+      const channelId = req.params.channelId;
+      const isMember = await this._interactor.isChannelMember(_id, channelId);
+      if (!isMember?._id) {
+        console.log("not a member");
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Is not a memeber", isMember: false });
+      }
+      console.log("useris subscribed");
+      res
+        .status(ResponseStatus.OK)
+        .json({ message: "Is a memeber", isMember: true });
+    } catch (error) {
+      console.error("Server error:", error);
+      next(error);
+    }
+  };
+  onSubscribeChannel = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { _id } = req.user as { _id: string };
+      const channelId = req.body.channelId;
+      const isMember = await this._interactor.isChannelMember(_id, channelId);
+      if (isMember?._id) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Already subscribed", isMember: true });
+      }
+      // console.log("user is not subscribed this channel", req.body);
+      const subscribe = await this._interactor.subscribeChannel(
+        _id,
+        req.body.channelId,
+        req.body.planId,
+        req.body.paymentId
+      );
+      if (!subscribe) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Error while subscribe" });
+      }
+      res.status(ResponseStatus.Created).json({
+        message: "Subscription success",
+        isMember: true,
+        payment: true,
+      });
+    } catch (error) {
+      console.error("Server error:", error);
+      next(error);
+    }
+  };
+  onGetAllSubscribedMemebers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const page = parseInt(req.query.page as string, 10);
+      const limit = parseInt(req.query.limit as string, 10);
+
+      const { _id } = req.user as { _id: string };
+      const channel = await this._interactor.getChannel(_id);
+      if (!channel) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Channel is not found" });
+      }
+      // console.log(channel);
+      const subscribedMembers = await this._interactor.getAllSubscribedMembers(
+        channel._id as string,
+        page,
+        limit
+      );
+      if (!subscribedMembers) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Can't fetch the members" });
+      }
+      // console.log("members", subscribedMembers);
+      res
+        .status(ResponseStatus.OK)
+        .json({
+          message: "Fetched the members",
+          members: subscribedMembers.subscribedmembers,
+          totalcount: subscribedMembers.totalcount,
+        });
+    } catch (error) {
+      console.error("Server error:", error);
+      next(error);
+    }
+  };
+  onFetchRevenueChart = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { _id } = req.user as { _id: string };
+      const revenueChart=await this._interactor.fetRevenueChart(_id)
+      if(!revenueChart){
+        return res.status(ResponseStatus.BadRequest).json({message:"Unable to fetch chart"})
+      }
+      console.log(revenueChart);
+
+      res
+      .status(ResponseStatus.OK)
+      .json({
+        message: "Fetched the revueChart",
+        revenue: revenueChart.monthlySubscription,
+        totalAmount:revenueChart.totalAmount
+      });
     } catch (error) {
       console.error("Server error:", error);
       next(error);

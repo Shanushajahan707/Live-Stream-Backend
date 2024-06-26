@@ -9,10 +9,125 @@ import { generateRandomString } from "../utils/generateOtp";
 import { sendOtpEmail } from "../utils/newUserNodemailer";
 import { sendOtpEmailForForgotPass } from "../utils/forgotPassNodemailer";
 import { otpModel } from "../model/otpSession";
+import {
+  Subscription,
+  WebsiteSubscriptionUser,
+  channelSubscription,
+} from "../entities/Subscription";
+import { SubscriptionModel } from "../model/websiteSubscription";
+import { channelSubscriptionModel } from "../model/channelSubscription";
+import { WebsiteMembershipModel } from "../model/websiteMembership";
+import mongoose from "mongoose";
+import { AdminWalletModel } from "../model/adminWallet";
 
 dotenv.config();
 
 export class UserRepository implements IUserRepository {
+  isTrailOver = async (userId: string): Promise<boolean> => {
+    try {
+      // Find the channel associated with the user
+      const channel = await ChannelModel.findOne({ username: userId });
+      if (!channel) {
+        throw new Error("Channel not found");
+      }
+
+      // Get the current date
+      const currentDate = new Date();
+
+      // Compare with the lastDateOfLive in the channel
+      return channel.lastDateOfLive < currentDate;
+    } catch (error) {
+      throw error;
+    }
+  };
+  websiteSubscription = async (
+    userId: string,
+    planId: string,
+    paymentId: string
+  ): Promise<WebsiteSubscriptionUser | null> => {
+    try {
+      console.log(userId, planId, paymentId);
+
+      const plan = await SubscriptionModel.findById(planId);
+      if (!plan) {
+        throw new Error("Subscription plan not found");
+        return null;
+      }
+
+      const newMembership = new WebsiteMembershipModel({
+        userId,
+        subscriptionPlanId: new mongoose.Types.ObjectId(planId),
+        paymentId,
+        createdAt: new Date(),
+      });
+
+      const savedMembership = await newMembership.save();
+
+      // Find the channel
+      const user = new mongoose.Types.ObjectId(userId);
+      const channel = await ChannelModel.findOne({ username: user });
+      if (!channel) {
+        throw new Error("Channel not found");
+        return null;
+      }
+
+      // Update the lastDateOfLive
+      const newLastDateOfLive = new Date(channel.lastDateOfLive);
+      newLastDateOfLive.setMonth(newLastDateOfLive.getMonth() + plan.month);
+
+      channel.lastDateOfLive = newLastDateOfLive;
+      await channel.save();
+
+      const admin = await UserModel.findOne({ role: "Admin" });
+      const adminWalletEntry = new AdminWalletModel({
+        adminId: admin?._id,
+        userId: new mongoose.Types.ObjectId(userId),
+        amount: plan.price,
+        month: plan.month,
+        createdAt: new Date(),
+        endsIn: newLastDateOfLive,
+      });
+
+      await adminWalletEntry.save();
+
+      return {
+        _id: savedMembership._id,
+        user: {
+          userId: savedMembership.userId,
+          subscriptionPlanId: savedMembership.subscriptionPlanId,
+          paymentId: savedMembership.paymentId,
+        },
+        createdAt: savedMembership.createdAt,
+      };
+    } catch (error) {
+      throw error;
+    }
+  };
+  getAllChannelSubscriptionPlan = async (): Promise<
+    channelSubscription[] | null
+  > => {
+    try {
+      const channelPlans = await channelSubscriptionModel.find();
+      if (channelPlans) {
+        return channelPlans;
+      }
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  };
+  getAllSubscriptionPlan = async (): Promise<Subscription[] | null> => {
+    try {
+      const plan = await SubscriptionModel.find();
+      if (plan) {
+        return plan;
+      }
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   changePass = async (
     email: string,
     password: string
@@ -64,9 +179,9 @@ export class UserRepository implements IUserRepository {
       if (!userid) {
         return false;
       }
-      console.log(userid, "user id");
+      // console.log(userid, "user id");
       const isUserBlocked = await UserModel.findById(userid);
-      console.log(isUserBlocked);
+      // console.log(isUserBlocked);
       if (isUserBlocked?.isblocked) {
         return true;
       }
@@ -140,6 +255,9 @@ export class UserRepository implements IUserRepository {
         role: userCreated.role,
         _id: userCreated.id,
       };
+      const lastDateOfLive = new Date();
+      lastDateOfLive.setDate(lastDateOfLive.getDate() + 3);
+
       const channel = {
         username: userCreated._id,
         channelName: `${userCreated.username}'s Channel`,
@@ -147,7 +265,7 @@ export class UserRepository implements IUserRepository {
         subscription: 0,
         banner: "/images/channel-banner1.png".replace("/images/", ""),
         video: [],
-        lives: [],
+        lastDateOfLive: lastDateOfLive,
       };
 
       await ChannelModel.create(channel)
@@ -419,6 +537,8 @@ export class UserRepository implements IUserRepository {
 
       const newUser = await UserModel.create(user);
       // console.log(newUser, "created");
+      const lastDateOfLive = new Date();
+      lastDateOfLive.setDate(lastDateOfLive.getDate() + 3);
 
       const channel = {
         username: newUser._id,
@@ -427,7 +547,7 @@ export class UserRepository implements IUserRepository {
         subscription: 0,
         banner: "/images/channel-banner1.png".replace("/images/", ""),
         video: [],
-        lives: [],
+        lastDateOfLive: lastDateOfLive,
       };
 
       const newChannel = await ChannelModel.create(channel)

@@ -414,7 +414,7 @@ export class UserController {
           role,
           _id
         );
-        // console.log("token", token);
+        console.log("token", token);
         res.cookie("authResponse", JSON.stringify({ message, user, token }));
         return res.redirect("http://localhost:4200/login");
       }
@@ -435,6 +435,97 @@ export class UserController {
             .json({ message: "Account Blocked", isBlocked: isUserBlocked });
         }
       }
+    } catch (error) {
+      next(error);
+    }
+  };
+  onGetAllSubscription = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const websiteSubscription =
+        await this._interactor.getAllSubscriptionPlan();
+      if (!websiteSubscription) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "error getting plan" });
+      }
+      res
+        .status(ResponseStatus.OK)
+        .json({ message: "plans fetched", websiteSubscription });
+    } catch (error) {
+      next(error);
+    }
+  };
+  onGetAllChannelSubscription = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const channelPlans =
+        await this._interactor.getAllChannelSubscriptionPlan();
+      if (!channelPlans) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "error getting plan" });
+      }
+      res
+        .status(ResponseStatus.OK)
+        .json({ message: "plans fetched", channelPlans });
+    } catch (error) {
+      next(error);
+    }
+  };
+  onSubscribeWebsite = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { _id } = req.user as { _id: string };
+      const subscribe = await this._interactor.websiteSubscription(
+        _id,
+        req.body.planId,
+        req.body.paymentId
+      );
+      if (!subscribe) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Error while subscribe" });
+      }
+      res
+        .status(ResponseStatus.Created)
+        .json({
+          message: "Subscription success",
+          isMember: true,
+          payment: true,
+        });
+    } catch (error) {
+      next(error);
+    }
+  };
+  isTrailOver = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { _id } = req.user as { _id: string };
+      const isTrailOver=await this._interactor.isTrailOver(_id)
+      if (!isTrailOver) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Error check the trial" });
+      }
+      res
+      .status(ResponseStatus.Created)
+      .json({
+        message: "Subscription success",
+        isTrailOver,
+      });
     } catch (error) {
       next(error);
     }

@@ -3,6 +3,7 @@ import { IUserInteractor } from "../providers/interfaces/IUserInteractor";
 import { IUserRepository } from "../providers/interfaces/IUserRepository";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { Subscription, WebsiteSubscriptionUser, channelSubscription } from "../entities/Subscription";
 
 dotenv.config();
 
@@ -13,6 +14,36 @@ export class UserInteractor implements IUserInteractor {
   constructor(repository: IUserRepository) {
     this._repostitory = repository;
   }
+
+  isTrailOver=async(userid: string): Promise<boolean> =>{
+   try {
+    return await this._repostitory.isTrailOver(userid)
+   } catch (error) {
+    throw error
+   }
+  }
+  websiteSubscription=async(userid: string,planId: string, paymentId: string): Promise<WebsiteSubscriptionUser | null> =>{
+    try {
+      return await this._repostitory.websiteSubscription(userid,planId,paymentId)
+    } catch (error) {
+      throw error
+    }
+  }
+  getAllChannelSubscriptionPlan=async(): Promise<channelSubscription[] | null> =>{
+    try {
+        return await this._repostitory.getAllChannelSubscriptionPlan()
+    } catch (error) {
+      throw error
+    }
+  }
+  getAllSubscriptionPlan=async(): Promise<Subscription[] | null> =>{
+    try {
+      return await this._repostitory.getAllSubscriptionPlan()
+    } catch (error) {
+      throw error
+    }
+  }
+
   changePass=async(email: string, password: string): Promise<boolean | null> =>{
    try {
       return await this._repostitory.changePass(email,password)    

@@ -20,4 +20,4 @@ const UserSchema: Schema<UserDocument> = new Schema({
   isblocked: { type: Boolean },
 });
 
-export const UserModel = mongoose.model<UserDocument>("user", UserSchema);
+export const UserModel = mongoose.model<UserDocument>("User", UserSchema);

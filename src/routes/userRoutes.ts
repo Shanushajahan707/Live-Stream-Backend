@@ -4,6 +4,7 @@ import { UserRepository } from "../repositories/UserRepository";
 import { UserInteractor } from "../interactors/UserInteractor";
 import passport from "passport";
 import authMiddleware from "../middleware/authMiddleware";
+import blockCheckMiddleware from "../middleware/blockMIddleware";
 const router = Router();
 
 // Creating a new instance of UserRepository to handle data access operations for the User entity.
@@ -16,13 +17,13 @@ const interactor = new UserInteractor(repository);
 const controller = new UserController(interactor);
 
 // Calls the onLogin method of the UserController instance to handle the login process.
-router.post("/loginuser", controller.onLogin.bind(controller));  
-//forgot poassword route  
-router.post("/forgoturl", controller.onSendUrl.bind(controller));    
+router.post("/loginuser", controller.onLogin.bind(controller));
+//forgot poassword route
+router.post("/forgoturl", controller.onSendUrl.bind(controller));
 //forgot password otp sent
-router.post("/forgotpasswordotp", controller.onSendOtpCheck.bind(controller)); 
-//   
-router.put("/changepassword", controller.onChangePassword.bind(controller));    
+router.post("/forgotpasswordotp", controller.onSendOtpCheck.bind(controller));
+//
+router.put("/changepassword", controller.onChangePassword.bind(controller));
 //call the onsignup method of the Usercontroller instance to handle the signup process
 router.post("/signup", controller.onSignup.bind(controller));
 //call the mehtod to handle otp post
@@ -44,6 +45,35 @@ router.get(
   controller.googleCallback.bind(controller)
 );
 
-router.get("/userisblocked",authMiddleware, controller.userIsBlocked.bind(controller));
+router.get(
+  "/userisblocked",
+  authMiddleware,
+  controller.userIsBlocked.bind(controller)
+);
+
+router.get(
+  "/getallsubscription",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onGetAllSubscription.bind(controller)
+);
+router.get(
+  "/getallchannelsubscription",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onGetAllChannelSubscription.bind(controller)
+);
+router.post(
+  "/websitesubscription",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onSubscribeWebsite.bind(controller)
+);
+router.get(
+  "/istrailover",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.isTrailOver.bind(controller)
+);
 
 export default router;

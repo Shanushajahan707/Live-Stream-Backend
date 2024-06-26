@@ -71,14 +71,40 @@ router.put(
   singleVideoUpload.single("videoFile"),
   controller.onUpdateViews.bind(controller)
 );
+
 router.post(
   "/searchchannel",
   authMiddleware,
   blockCheckMiddleware,
   controller.onSearchChannel.bind(controller)
 );
-// router.get('/isfollow',authMiddleware,
 
-// )
+router.get(
+  "/ismember/:channelId",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onIsMember.bind(controller)
+);
+
+router.post(
+  "/channelsubscribe",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onSubscribeChannel.bind(controller)
+);
+router.get(
+  "/getsubscribedmembers",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onGetAllSubscribedMemebers.bind(controller)
+);
+router.get(
+  "/getrevenuechart",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onFetchRevenueChart.bind(controller)
+);
+
+
 
 export default router;

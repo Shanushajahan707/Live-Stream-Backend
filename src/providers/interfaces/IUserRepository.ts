@@ -1,3 +1,4 @@
+import { Subscription, WebsiteSubscriptionUser, channelSubscription } from "../../entities/Subscription";
 import { User, googleUser } from "../../entities/User";
 
 export interface IUserRepository {
@@ -25,5 +26,9 @@ export interface IUserRepository {
   forgotPassOtpGet(email:string):Promise<{otp:number|null}>
   changePass(email:string,password:string):Promise<boolean|null>
   isUserBlocked(userid:string):Promise<boolean>
+  getAllSubscriptionPlan():Promise<Subscription[]|null>
+  getAllChannelSubscriptionPlan():Promise<channelSubscription[]|null>
+  websiteSubscription(userid: string,planId: string,paymentId: string):Promise<WebsiteSubscriptionUser|null>
+  isTrailOver(userid:string):Promise<boolean>
 
 }
