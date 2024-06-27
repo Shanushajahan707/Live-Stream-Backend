@@ -19,6 +19,9 @@ router.get('/getchannel',authMiddleware,blockCheckMiddleware,controller.onGetCha
 router.put('/updatestartliveinfo/:roomId',authMiddleware,blockCheckMiddleware,controller.onUpdateStartLiveInfo.bind(controller))
 router.put('/updatestopliveinfo',authMiddleware,blockCheckMiddleware,controller.onUpdateStopLiveInfo.bind(controller))
 router.get('/recommendedlives',authMiddleware,blockCheckMiddleware,controller.onGetReconmmendedLives.bind(controller))
-
+router.post('/updatelivehistory',authMiddleware,blockCheckMiddleware,controller.onUpdateLiveHistory.bind(controller))
+router.put('/updatelivehistoryuser',authMiddleware,blockCheckMiddleware,controller.onUpdateLiveHistoryUser.bind(controller))
+router.put('/updatelivehistoryend',authMiddleware,blockCheckMiddleware,controller.onUpdateLiveHistoryEnd.bind(controller))
+router.get('/fetchlivehistory/:channelId',authMiddleware,blockCheckMiddleware,controller.fetchLiveHistory.bind(controller))
 
 export default router;

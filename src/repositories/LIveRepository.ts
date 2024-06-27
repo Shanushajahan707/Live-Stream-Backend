@@ -1,9 +1,175 @@
 // import mongoose from "mongoose";
+import mongoose from "mongoose";
 import { Channel } from "../entities/Channel";
 import { ChannelModel } from "../model/channelModel";
+import { LiveHistoryModel } from "../model/liveHistory";
 import { ILiveRepository } from "../providers/interfaces/ILiveRepository";
+import { LiveHistory } from "../entities/liveHistory";
 
 export class LiveRepository implements ILiveRepository {
+  fetchAllLives = async (
+    channelId: string
+  ): Promise<LiveHistory[] | null> => {
+    try {
+
+      const channel = new mongoose.Types.ObjectId(channelId);
+
+      const lives = await LiveHistoryModel.find({
+        channelId:channel,
+     
+
+      })
+        .populate({
+          path: 'viewerIds',
+          select: 'username',
+          model: 'User'
+        })
+        .populate({
+          path: 'channelId',
+          select: 'channelName',
+          model: 'Channel'
+        })
+        .exec();
+  
+      if (!lives || lives.length === 0) {
+        return null;
+      }
+      
+      console.log('history fetched',lives);
+
+      return lives.map((live) => ({
+        _id: live._id,
+        channelId: live.channelId,
+        startDate: live.startDate,
+        startTime: live.startTime,
+        endTime: live.endTime,
+        roomId: live.roomId,
+        streamerName: live.streamerName,
+        viewerIds: live.viewerIds,
+        viewerCount: live.viewerCount,
+        duration: live.duration,
+        liveName:live.liveName
+      }));
+
+    } catch (error) {
+      throw error;
+    }
+  }
+  onUpdateLiveHistoryEnded = async (
+    RoomId: number
+  ): Promise<string | null> => {
+    try {
+      const currentDateTime = new Date();
+  
+      const updatedLiveHistory = await LiveHistoryModel.findOneAndUpdate(
+        {
+          roomId: RoomId,
+          $or: [
+            { endDate: { $exists: false } },
+            { endDate: null }, 
+          ],
+        },
+        {
+          $set: {
+         
+            endTime: currentDateTime,
+          },
+        },
+        { new: true }
+      );
+  
+      if (!updatedLiveHistory) {
+        throw new Error("LiveHistory not found");
+      }
+  
+      return updatedLiveHistory._id.toString();
+    } catch (error) {
+      throw error;
+    }
+  };
+  onUpdateLiveHistoryUsers = async (
+    RoomId: number,
+    userId: string
+  ): Promise<string | null> => {
+    try {
+      // Convert userId to ObjectId
+      const userObjectId = new mongoose.Types.ObjectId(userId.trim());
+
+      // Get the current date in YYYY-MM-DD format
+      const currentDate = new Date().toISOString().split("T")[0];
+
+      const updatedLiveHistory = await LiveHistoryModel.findOneAndUpdate(
+        {
+          roomId: RoomId,
+          $or: [
+            { endTime: { $exists: false } }, // Matches documents where endDate does not exist
+            { endTime: { $ne: currentDate } } // Matches documents where endDate is not equal to currentDate
+          ]
+        },
+        {
+          $addToSet: {
+            viewerIds: userObjectId,
+          },
+          $inc: {
+            viewerCount: 1,
+          },
+        },
+        { new: true }
+      );
+
+      const live = await LiveHistoryModel.find({
+        roomId: RoomId,
+        startDate: new Date(),
+      });
+      console.log(live);
+
+      if (!updatedLiveHistory) {
+        throw new Error("LiveHistory not found");
+      }
+      console.log('updated the user detail of the live');
+      return updatedLiveHistory._id.toString();
+    } catch (error) {
+      throw error;
+    }
+  };
+  onUpdateLiveHistory = async (
+    streamerId: string,
+    streamName: string,
+    roomId: number,
+    channelId: string
+  ): Promise<string | null> => {
+    try {
+      // Convert streamerId and channelId to ObjectId
+      const streamerObjectId = new mongoose.Types.ObjectId(streamerId);
+      const channelObjectId = new mongoose.Types.ObjectId(channelId);
+      const currentTime = new Date();
+      const options = { timeZone: "Asia/Kolkata" };
+      const localTimeString = currentTime.toLocaleString("en-US", options);
+
+      // Find or create LiveHistory document
+      const liveHistory = await LiveHistoryModel.findOneAndUpdate(
+        { streamerName: streamerObjectId },
+        {
+          $setOnInsert: {
+            streamerName: streamerObjectId,
+            viewerIds: [],
+            viewerCount: 0,
+            startDate: new Date(),
+            startTime: localTimeString,
+            duration: 0,
+            channelId: channelObjectId,
+            liveName: streamName,
+            roomId: roomId,
+          },
+        },
+        { upsert: true, new: true }
+      );
+      console.log("live history updated");
+      return liveHistory._id.toString();
+    } catch (error) {
+      throw error;
+    }
+  };
   onGetRecommendedLives = async (
     channelId: string
   ): Promise<Channel[] | null> => {
@@ -31,7 +197,6 @@ export class LiveRepository implements ILiveRepository {
         ],
         { new: true }
       );
-      console.log("live details updated", updatedChannel);
       return updatedChannel;
     } catch (error) {
       throw error;
@@ -55,7 +220,6 @@ export class LiveRepository implements ILiveRepository {
         ],
         { new: true }
       );
-      console.log("live details updated", updatedChannel);
       return updatedChannel;
     } catch (error) {
       throw error;
