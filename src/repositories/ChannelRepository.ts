@@ -3,18 +3,14 @@ import { Channel } from "../entities/Channel";
 import { ChannelModel } from "../model/channelModel";
 import { IChannelRepository } from "../providers/interfaces/IChannelRepository";
 import { UserModel } from "../model/userModel";
-import { ChannelSubscriptionUser } from "../entities/Subscription";
+import { ChannelSubscriptionUser, FormattedChannelSubscriptionUser } from "../entities/Subscription";
 import { ChannelMembershipModel } from "../model/chennelMembership";
 import { channelSubscriptionModel } from "../model/channelSubscription";
 
 export class channelRepository implements IChannelRepository {
-  fetRevenueChart = async (
-    userId: string
-  ): Promise<{ monthlySubscription: { [key: string]: number } | null, totalAmount: number }> => {
+  getExcelData = async (userId: string, startDate: string, endDate: string): Promise<FormattedChannelSubscriptionUser[] | null> => {
     try {
-      const userChannel = await ChannelModel.findOne({
-        username: userId,
-      }).exec();
+      const userChannel = await ChannelModel.findOne({ username: userId }).exec();
   
       if (!userChannel) {
         throw new Error("User channel not found");
@@ -24,6 +20,63 @@ export class channelRepository implements IChannelRepository {
   
       const memberships = await ChannelMembershipModel.find({
         "members.channelId": channelId,
+        createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) }
+      })
+      .populate({
+        path: "members.userId",
+        select: "username",
+      })
+      .populate({
+        path: "members.userChannelId",
+        model: "Channel",
+        select: "channelName",
+      })
+      .populate({
+        path: "members.channelPlanId",
+        model: "ChannelSubscription",
+        select: "month price",
+      }).exec();
+  
+      // Map the memberships to extract the needed fields and transform ObjectId and Date fields to strings
+      const formattedData: FormattedChannelSubscriptionUser[] = memberships.map(membership => ({
+        _id: membership._id.toString(),
+        members: {
+          userId: membership.members.userId.username,
+          userChannelId: membership.members.userChannelId.channelName,
+          channelId: membership.members.channelId.toString(),
+          channelPlanId: membership.members.channelPlanId.price.toString(),
+          paymentId: membership.members.paymentId,
+        },
+        createdAt: membership.createdAt.toISOString(),
+        endsIn: membership.endsIn.toISOString(),
+      }));
+  
+      return formattedData;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+
+  fetRevenueChart = async (
+    userId: string
+  ): Promise<{
+    monthlySubscription: { [key: string]: number } | null;
+    totalAmount: number;
+  }> => {
+    try {
+      const userChannel = await ChannelModel.findOne({
+        username: userId,
+      }).exec();
+
+      if (!userChannel) {
+        throw new Error("User channel not found");
+      }
+
+      const channelId = userChannel._id;
+
+      const memberships = await ChannelMembershipModel.find({
+        "members.channelId": channelId,
       })
         .populate({
           path: "members.channelPlanId",
@@ -31,32 +84,34 @@ export class channelRepository implements IChannelRepository {
           select: "price",
         })
         .exec();
-  
+
       const monthlySubscription: { [key: string]: number } = {};
       let totalAmount = 0;
-  
+
       memberships.forEach((subscriber) => {
         const date = new Date(subscriber.createdAt);
         const subscriptionMonth = `${date.getFullYear()}-${(date.getMonth() + 1)
           .toString()
           .padStart(2, "0")}`;
-  
+
         const planPrice = subscriber.members.channelPlanId.price;
         totalAmount += planPrice;
-  
+
         if (monthlySubscription[subscriptionMonth]) {
           monthlySubscription[subscriptionMonth] += planPrice;
         } else {
           monthlySubscription[subscriptionMonth] = planPrice;
         }
       });
-      
-      return { monthlySubscription: monthlySubscription, totalAmount: totalAmount };
+
+      return {
+        monthlySubscription: monthlySubscription,
+        totalAmount: totalAmount,
+      };
     } catch (error) {
       throw error;
     }
   };
-
 
   getAllSubscribedMembers = async (
     channelId: string,
@@ -88,24 +143,24 @@ export class channelRepository implements IChannelRepository {
           select: "month price",
         })
         .exec();
-        const transformedMembers: ChannelSubscriptionUser[] = subscribedMembers.map((member) => ({
+      const transformedMembers: ChannelSubscriptionUser[] =
+        subscribedMembers.map((member) => ({
           _id: member._id,
-        members: {
-          userId: member.members.userId.username,
-          userChannelId: member.members.userChannelId.channelName,
-          channelId: member.members.channelId.toString(),
-          channelPlanId: member.members.channelPlanId.month,
-          paymentId: member.members.paymentId,
-        },
-        createdAt: member.createdAt,
-        endsIn: member.endsIn,
-      }));
-      
-    
+          members: {
+            userId: member.members.userId.username,
+            userChannelId: member.members.userChannelId.channelName,
+            channelId: member.members.channelId.toString(),
+            channelPlanId: member.members.channelPlanId.month,
+            paymentId: member.members.paymentId,
+          },
+          createdAt: member.createdAt,
+          endsIn: member.endsIn,
+        }));
+
       const totalcount = await ChannelMembershipModel.countDocuments({
         "members.channelId": new mongoose.Types.ObjectId(channelId),
       });
-  
+      console.log("members", transformedMembers);
       return { subscribedmembers: transformedMembers, totalcount: totalcount };
     } catch (error) {
       throw error;

@@ -17,5 +17,5 @@ export interface IAdminInteractor {
   addChannelSubscription(data:channelSubscription):Promise<channelSubscription|null>
   getAllChannelPlan():Promise<channelSubscription[]|null>
   fetchMembership():Promise<{member:AdminWalletDocument[]|null,wallet:number}>
-  fetchDashboardData():Promise<{monthlySubscription: { [key: string]: number } | null}>
+  fetchDashboardData():Promise<{monthlySubscription: { [key: string]: number } | null,individualPlanSubscriptions:  {[key: string]: { [key: string]: number }}}>
 }

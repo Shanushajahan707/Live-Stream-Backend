@@ -64,20 +64,16 @@ export class LiveRepository implements ILiveRepository {
       const updatedLiveHistory = await LiveHistoryModel.findOneAndUpdate(
         {
           roomId: RoomId,
-          $or: [
-            { endDate: { $exists: false } },
-            { endDate: null }, 
-          ],
+         
         },
         {
           $set: {
-         
             endTime: currentDateTime,
           },
         },
         { new: true }
       );
-  
+      console.log(updatedLiveHistory);
       if (!updatedLiveHistory) {
         throw new Error("LiveHistory not found");
       }
@@ -96,15 +92,11 @@ export class LiveRepository implements ILiveRepository {
       const userObjectId = new mongoose.Types.ObjectId(userId.trim());
 
       // Get the current date in YYYY-MM-DD format
-      const currentDate = new Date().toISOString().split("T")[0];
 
       const updatedLiveHistory = await LiveHistoryModel.findOneAndUpdate(
         {
           roomId: RoomId,
-          $or: [
-            { endTime: { $exists: false } }, // Matches documents where endDate does not exist
-            { endTime: { $ne: currentDate } } // Matches documents where endDate is not equal to currentDate
-          ]
+        
         },
         {
           $addToSet: {
@@ -148,7 +140,7 @@ export class LiveRepository implements ILiveRepository {
 
       // Find or create LiveHistory document
       const liveHistory = await LiveHistoryModel.findOneAndUpdate(
-        { streamerName: streamerObjectId },
+        { roomId: roomId },
         {
           $setOnInsert: {
             streamerName: streamerObjectId,
@@ -164,7 +156,7 @@ export class LiveRepository implements ILiveRepository {
         },
         { upsert: true, new: true }
       );
-      console.log("live history updated");
+      console.log("live history updated",liveHistory);
       return liveHistory._id.toString();
     } catch (error) {
       throw error;

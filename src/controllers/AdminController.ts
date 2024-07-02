@@ -279,7 +279,8 @@ export class AdminController {
         .status(ResponseStatus.OK)
         .json({
           message: "plan fetched",
-          monthlySubscription:response.monthlySubscription
+          monthlySubscription:response.monthlySubscription,
+          individualPlanSubscriptions:response.individualPlanSubscriptions
         });
     } catch (error) {
       next(error);

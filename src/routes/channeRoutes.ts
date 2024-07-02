@@ -104,6 +104,12 @@ router.get(
   blockCheckMiddleware,
   controller.onFetchRevenueChart.bind(controller)
 );
+router.get(
+  "/revenue-chart",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onFetchExcelData.bind(controller)
+);
 
 
 

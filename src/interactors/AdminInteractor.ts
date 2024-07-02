@@ -10,7 +10,7 @@ export class AdminInteractor implements IAdminInteractor {
   constructor(repository: IAdminRepository) {
     this._repository = repository;
   }
-  fetchDashboardData=async(): Promise<{monthlySubscription: { [key: string]: number } | null}> =>{
+  fetchDashboardData=async(): Promise<{monthlySubscription: { [key: string]: number } | null,individualPlanSubscriptions:  {[key: string]: { [key: string]: number }}}> =>{
     try {
       return await this._repository.fetchDashboardData()
     } catch (error) {

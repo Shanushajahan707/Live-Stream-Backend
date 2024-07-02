@@ -17,7 +17,7 @@ export class UserController {
   constructor(interactor: IUserInteractor) {
     this._interactor = interactor;
   }
-
+  
   //logn funcitonalities and call the interactor
   onLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {

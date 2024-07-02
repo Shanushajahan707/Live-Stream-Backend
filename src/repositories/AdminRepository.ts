@@ -14,31 +14,61 @@ import { SubscriptionModel } from "../model/websiteSubscription";
 import { IAdminRepository } from "../providers/interfaces/IAdminRepository";
 
 export class AdminRepository implements IAdminRepository {
-  
-  fetchDashboardData = async (): Promise<{monthlySubscription: { [key: string]: number } | null}> => {
+  fetchDashboardData = async (): Promise<{
+    monthlySubscription: { [key: string]: number } | null,individualPlanSubscriptions:  {[key: string]: { [key: string]: number }};
+  }> => {
     try {
       const memberShipModel = await WebsiteMembershipModel.find();
       if (!memberShipModel) {
         throw new Error("Channel not found");
       }
       const monthlySubscription: { [key: string]: number } = {};
+      const individualPlanSubscriptions: {
+        [key: string]: { [key: string]: number };
+      } = {};
+
+      const websitePlans = await SubscriptionModel.find();
+      const websitePlan: Record<string, number> = {};
+
+      for (const plan of websitePlans) {
+        websitePlan[plan._id] = plan.month;
+      }
 
       memberShipModel.forEach((subscriber) => {
+        // console.log("subcriber", subscriber);
+        const subscriptionId = subscriber.subscriptionPlanId.toString();
+        const planMonth = websitePlan[subscriptionId];
+
+        // console.log("planMonth", planMonth);
+
         const date = new Date(subscriber.createdAt);
-        const subscriptionMonth = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+        const subscriptionMonth = `${date.getFullYear()}-${(date.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}`;
 
         if (monthlySubscription[subscriptionMonth]) {
           monthlySubscription[subscriptionMonth]++;
         } else {
           monthlySubscription[subscriptionMonth] = 1;
         }
+
+        if (!individualPlanSubscriptions[planMonth]) {
+          individualPlanSubscriptions[planMonth] = {};
+        }
+
+        if (individualPlanSubscriptions[planMonth][subscriptionMonth]) {
+          individualPlanSubscriptions[planMonth][subscriptionMonth]++;
+        } else {
+          individualPlanSubscriptions[planMonth][subscriptionMonth] = 1;
+        }
       });
-      console.log(monthlySubscription);
-      return {monthlySubscription};
+
+      console.log("individualPlanSubscriptions", individualPlanSubscriptions);
+      return { monthlySubscription,individualPlanSubscriptions };
     } catch (error) {
       throw error;
     }
-};
+  };
 
   fetchMembership = async (): Promise<{
     member: AdminWalletDocument[] | null;

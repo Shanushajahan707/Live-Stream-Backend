@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { IChannelInteractor } from "../providers/interfaces/IChannelInteractor";
 import { ResponseStatus } from "../constants/statusCodeEnums";
+import * as XLSX from 'xlsx';
 
 export class ChannelController {
   private _interactor: IChannelInteractor;
@@ -403,6 +404,43 @@ export class ChannelController {
         revenue: revenueChart.monthlySubscription,
         totalAmount:revenueChart.totalAmount
       });
+    } catch (error) {
+      console.error("Server error:", error);
+      next(error);
+    }
+  };
+  onFetchExcelData = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { _id } = req.user as { _id: string };
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+  
+      const data = await this._interactor.getExcelData(_id, startDate, endDate);
+  
+      if (!data) {
+        return res.status(ResponseStatus.BadRequest).json({ message: "Error in fetching Excel data" });
+      }
+  
+      const formattedData = data.map(entry => ({
+        _id: entry._id,
+        userId: entry.members.userId as string,
+        userChannelId: entry.members.userChannelId as string,
+        channelId: entry.members.channelId as string,
+        channelPlanId: entry.members.channelPlanId as string,
+        paymentId: entry.members.paymentId,
+        createdAt: entry.createdAt,
+        endsIn: entry.endsIn,
+      }))
+      console.log(formattedData);
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: 'xlsx',
+        type: 'array',
+      });
+      res.setHeader('Content-Disposition', 'attachment; filename=RevenueReport.xlsx');
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.send(Buffer.from(excelBuffer));
     } catch (error) {
       console.error("Server error:", error);
       next(error);

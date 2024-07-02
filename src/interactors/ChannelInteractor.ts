@@ -1,5 +1,5 @@
 import { Channel } from "../entities/Channel";
-import { ChannelSubscriptionUser } from "../entities/Subscription";
+import { ChannelSubscriptionUser, FormattedChannelSubscriptionUser } from "../entities/Subscription";
 import { IChannelInteractor } from "../providers/interfaces/IChannelInteractor";
 import { IChannelRepository } from "../providers/interfaces/IChannelRepository";
 import { uploadS3Video } from "../utils/s3Uploader";
@@ -8,6 +8,13 @@ export class channelInteractor implements IChannelInteractor {
   private _repository: IChannelRepository;
   constructor(private repository: IChannelRepository) {
     this._repository = repository;
+  }
+  getExcelData=async(userId:string,startDate: string, endDate: string): Promise<FormattedChannelSubscriptionUser[] | null> =>{
+   try {
+     return await this._repository.getExcelData(userId,startDate,endDate)
+   } catch (error) {
+    throw error
+   }
   }
   fetRevenueChart=async(userid: string): Promise<{ monthlySubscription: { [key: string]: number; } | null;totalAmount: number }> =>{
     try {

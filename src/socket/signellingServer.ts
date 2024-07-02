@@ -24,7 +24,7 @@ export function configureSocket(expressServer: httpServer) {
 
     socket.on("join room", (data) => {
       const { room, role, username } = data;
-      console.log('joined username is',username);
+      console.log("joined username is", username);
       if (!rooms[room]) {
         rooms[room] = [];
       }
@@ -42,16 +42,31 @@ export function configureSocket(expressServer: httpServer) {
     });
 
     socket.on("chat message", (data) => {
-      console.log('chat data form the signel server',data);
-      const { room, message, username } = data;
+      console.log("Chat data from the signaling server", data);
+      const { room, message, username, messageType } = data;
       const currentTime = new Date();
-      const options = { timeZone: 'Asia/Kolkata' }
-      const localTimeString = currentTime.toLocaleString('en-US', options);
-      io.to(room).emit("chat message", { username, message, timestamp:localTimeString });
+      const options = { timeZone: "Asia/Kolkata" };
+      const localTimeString = currentTime.toLocaleString("en-US", options);
+    
+      if (messageType === "audio") {
+        const audioUrl = message; // Assuming the frontend sends the audio data as a base64 URL
+        io.to(room).emit("chat message", {
+          username,
+          message: '',
+          messageType,
+          timestamp: localTimeString,
+          audioUrl,
+        });
+      } else {
+        io.to(room).emit("chat message", {
+          username,
+          message,
+          messageType,
+          timestamp: localTimeString,
+        });
+      }
     });
     
-    
-
     socket.on("offer", (data) => {
       io.to(data.id).emit("offer", { id: socket.id, offer: data.offer });
     });
@@ -94,11 +109,17 @@ export function configureSocket(expressServer: httpServer) {
 
   function consoleLogRoomParticipants(room: string) {
     const roomUsers = rooms[room] || [];
-    const broadcastersInRoom = roomUsers.filter(user => user.role === 'broadcaster');
-    const viewersInRoom = roomUsers.filter(user => user.role !== 'broadcaster');
-    
-    const broadcastersList = broadcastersInRoom.map(broadcaster => broadcaster.userId).join(", ");
-    const viewersList = viewersInRoom.map(viewer => viewer.userId).join(", ");
+    const broadcastersInRoom = roomUsers.filter(
+      (user) => user.role === "broadcaster"
+    );
+    const viewersInRoom = roomUsers.filter(
+      (user) => user.role !== "broadcaster"
+    );
+
+    const broadcastersList = broadcastersInRoom
+      .map((broadcaster) => broadcaster.userId)
+      .join(", ");
+    const viewersList = viewersInRoom.map((viewer) => viewer.userId).join(", ");
 
     console.log(`Room: ${room}`);
     console.log(`Broadcasters: ${broadcastersInRoom.length}`);

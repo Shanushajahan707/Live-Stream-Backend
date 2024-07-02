@@ -7,10 +7,10 @@ import channelRoutes from './routes/channeRoutes'
 import liveRoutes from './routes/liveRoutes'
 import { configureSocket } from './socket/signellingServer';
 
-
 dotenv.config();
 connectDatabase()
 const port = process.env.PORT || 3001;
+
 
 app.use('/', userRoutes);
 app.use('/admin',adminRoutes)
@@ -18,9 +18,8 @@ app.use('/channel',channelRoutes)
 app.use('/live',liveRoutes)
 
 
-
-const server= app.listen(port, () => {
+const server=app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-configureSocket(server)
+configureSocket(server);

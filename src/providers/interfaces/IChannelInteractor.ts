@@ -1,5 +1,5 @@
 import { Channel } from "../../entities/Channel";
-import { ChannelSubscriptionUser } from "../../entities/Subscription";
+import { ChannelSubscriptionUser, FormattedChannelSubscriptionUser } from "../../entities/Subscription";
 
 export interface IChannelInteractor {
   getChannel(id: string): Promise<Channel | null>;
@@ -43,4 +43,5 @@ export interface IChannelInteractor {
   fetRevenueChart(
     userid: string
   ): Promise<{ monthlySubscription: { [key: string]: number } | null,totalAmount: number }>;
+  getExcelData(userId:string,startDate:string,endDate:string):Promise<FormattedChannelSubscriptionUser[]|null>
 }

@@ -34,6 +34,19 @@ export interface WebsiteSubscriptionUser {
   };
   readonly createdAt: Date;
 }
+
+export interface FormattedChannelSubscriptionUser {
+  readonly _id?: string;
+  readonly members: {
+    userId: string;
+    userChannelId: string;
+    channelId: string;
+    channelPlanId: string;
+    paymentId: string;
+  };
+  readonly createdAt: string;
+  readonly endsIn: string;
+}
 export interface AdminWalletDocument {
   readonly _id?: string;
   adminId: User["_id"];

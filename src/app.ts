@@ -3,14 +3,14 @@ import cors from "cors";
 import session from "express-session"; 
 import dotenv from "dotenv";
 import path from "path";
-import { Server as httpServer } from "http";
+// import { Server as httpServer } from "http";
 import passport from "passport";
 import "./auth/passport"; 
-import { configureSocket } from "./socket/signellingServer";
+// import { configureSocket } from "./socket/signellingServer";
 
 dotenv.config();
 const app = express();
-const server = new httpServer(app);
+// const server = new httpServer(app);
 
 // Middleware setup
 app.use(cors({ origin: process.env.FRONTEND_URL }));
@@ -30,6 +30,6 @@ app.use(passport.session());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-configureSocket(server);
+// configureSocket(server);
 
 export default app;
