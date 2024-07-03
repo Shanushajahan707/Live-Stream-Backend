@@ -35,7 +35,7 @@ export class LiveRepository implements ILiveRepository {
         return null;
       }
       
-      console.log('history fetched',lives);
+      // console.log('history fetched',lives);
 
       return lives.map((live) => ({
         _id: live._id,
@@ -73,7 +73,7 @@ export class LiveRepository implements ILiveRepository {
         },
         { new: true }
       );
-      console.log(updatedLiveHistory);
+      // console.log(updatedLiveHistory);
       if (!updatedLiveHistory) {
         throw new Error("LiveHistory not found");
       }
@@ -109,11 +109,11 @@ export class LiveRepository implements ILiveRepository {
         { new: true }
       );
 
-      const live = await LiveHistoryModel.find({
+      await LiveHistoryModel.find({
         roomId: RoomId,
         startDate: new Date(),
       });
-      console.log(live);
+      // console.log(live);
 
       if (!updatedLiveHistory) {
         throw new Error("LiveHistory not found");
@@ -156,7 +156,7 @@ export class LiveRepository implements ILiveRepository {
         },
         { upsert: true, new: true }
       );
-      console.log("live history updated",liveHistory);
+      // console.log("live history updated",liveHistory);
       return liveHistory._id.toString();
     } catch (error) {
       throw error;

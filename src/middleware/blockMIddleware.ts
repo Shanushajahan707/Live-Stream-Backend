@@ -26,7 +26,6 @@ const blockCheckMiddleware = async (
     }
 
     if (foundUser.isblocked) {
-      console.log("user blocked");
       return res
         .status(ResponseStatus.BadRequest)
         .json({ message: "User is blocked" });

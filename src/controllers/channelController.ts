@@ -38,8 +38,8 @@ export class ChannelController {
   };
   onEditChannel = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("the datas are ", req.body);
-      console.log("the img are ", req.file?.filename);
+      // console.log("the datas are ", req.body);
+      // console.log("the img are ", req.file?.filename);
       if (!req.body.channelName) {
         return res
           .status(ResponseStatus.NotFound)
@@ -63,20 +63,20 @@ export class ChannelController {
         channelName,
         filePath ?? ""
       );
-      console.log("updaeted", newChannelData);
+      // console.log("updaeted", newChannelData);
       if (newChannelData) {
         console.log("ChannelData edited successfully");
         return res
           .status(ResponseStatus.Accepted)
           .json({ message: "ChannelData edited successfully", newChannelData });
       } else {
-        console.log("Failed to edit ChannelData");
+        // console.log("Failed to edit ChannelData");
         return res
           .status(ResponseStatus.NotFound)
           .json({ message: "Failed to edit ChannelData" });
       }
     } catch (error) {
-      console.log("here");
+      // console.log("here");
       next(error);
     }
   };
@@ -99,7 +99,7 @@ export class ChannelController {
         .status(ResponseStatus.Accepted)
         .json({ message: "Recommended channel fetched", recommendedChannels });
     } catch (error) {
-      console.log("err", error);
+      // console.log("err", error);
       next(error);
     }
   };
@@ -112,10 +112,10 @@ export class ChannelController {
 
   onFollowChannel = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("the follow channel is", req.body);
+      // console.log("the follow channel is", req.body);
       const { _id } = req.user as { _id: string };
       const isfollow = await this._interactor.isFollow(_id, req.body);
-      console.log("is fllow cntrl", isfollow);
+      // console.log("is fllow cntrl", isfollow);
       if (isfollow) {
         return res
           .status(ResponseStatus.BadRequest)
@@ -125,7 +125,7 @@ export class ChannelController {
         _id,
         req.body
       );
-      console.log(updatedChannel);
+      // console.log(updatedChannel);
       if (updatedChannel) {
         return res
           .status(ResponseStatus.OK)
@@ -144,10 +144,10 @@ export class ChannelController {
     next: NextFunction
   ) => {
     try {
-      console.log("the follow channel is", req.body);
+      // console.log("the follow channel is", req.body);
       const { _id } = req.user as { _id: string };
       const isfollow = await this._interactor.isFollow(_id, req.body);
-      console.log("is fllow cntrl", isfollow);
+      // console.log("is fllow cntrl", isfollow);
       if (!isfollow) {
         return res
           .status(ResponseStatus.BadRequest)
@@ -157,7 +157,7 @@ export class ChannelController {
         _id,
         req.body
       );
-      console.log(updatedChannel);
+      // console.log(updatedChannel);
       if (updatedChannel) {
         return res
           .status(ResponseStatus.OK)
@@ -177,7 +177,7 @@ export class ChannelController {
   ) => {
     try {
       const { _id } = req.user as { _id: string };
-      console.log(_id);
+      // console.log(_id);
       const followedChannels = await this._interactor.getFullFollowChannels(
         _id
       );
@@ -200,7 +200,7 @@ export class ChannelController {
     next: NextFunction
   ) => {
     try {
-      console.log("channel id through params", req.params.channelId);
+      // console.log("channel id through params", req.params.channelId);
       const followChannel = await this._interactor.getFollowChannel(
         req.params.channelId
       );
@@ -219,8 +219,8 @@ export class ChannelController {
 
   onUploadShorts = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("Channel ID through params:", req.params.channelId);
-      console.log("File is:", req.file);
+      // console.log("Channel ID through params:", req.params.channelId);
+      // console.log("File is:", req.file);
 
       if (!req.file || !req.file.mimetype.startsWith("video/mp4")) {
         return res
@@ -282,7 +282,7 @@ export class ChannelController {
       res
         .status(ResponseStatus.OK)
         .json({ message: "Search Done", channels: channels });
-      console.log("query", query);
+      // console.log("query", query);
     } catch (error) {
       console.error("Server error:", error);
       next(error);
@@ -294,12 +294,12 @@ export class ChannelController {
       const channelId = req.params.channelId;
       const isMember = await this._interactor.isChannelMember(_id, channelId);
       if (!isMember?._id) {
-        console.log("not a member");
+        // console.log("not a member");
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: "Is not a memeber", isMember: false });
       }
-      console.log("useris subscribed");
+      // console.log("useris subscribed");
       res
         .status(ResponseStatus.OK)
         .json({ message: "Is a memeber", isMember: true });
@@ -395,7 +395,7 @@ export class ChannelController {
       if(!revenueChart){
         return res.status(ResponseStatus.BadRequest).json({message:"Unable to fetch chart"})
       }
-      console.log(revenueChart);
+      // console.log(revenueChart);
 
       res
       .status(ResponseStatus.OK)
@@ -431,7 +431,7 @@ export class ChannelController {
         createdAt: entry.createdAt,
         endsIn: entry.endsIn,
       }))
-      console.log(formattedData);
+      // console.log(formattedData);
       const worksheet = XLSX.utils.json_to_sheet(formattedData);
       const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
       const excelBuffer = XLSX.write(workbook, {

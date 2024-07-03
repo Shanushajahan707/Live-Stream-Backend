@@ -127,7 +127,7 @@ export class LiveController {
           .status(ResponseStatus.BadRequest)
           .json({ message: "channel not found" });
       }
-      console.log(req.body);
+      // console.log(req.body);
       const isLiveUpdate=await this.interactor.onUpdateLiveHistory(_id,req.body.payload.liveName,req.body.payload.RoomId,channel._id as string)
       if (!isLiveUpdate) {
         return res
@@ -156,7 +156,7 @@ export class LiveController {
           .status(ResponseStatus.BadRequest)
           .json({ message: "channel not found" });
       }
-     console.log(req.body);
+    //  console.log(req.body);
       const isLiveUpdate=await this.interactor.onUpdateLiveHistoryUsers(req.body.payload.RoomId,req.body.payload.user)
       if (!isLiveUpdate) {
         return res
@@ -176,7 +176,7 @@ export class LiveController {
     next: NextFunction
   ) => {
     try {
-      console.log("here");
+      // console.log("here");
       const { _id } = req.user as { _id: string };
 
       const channel = await this._interactor.onGetChannel(_id);
@@ -185,7 +185,7 @@ export class LiveController {
           .status(ResponseStatus.BadRequest)
           .json({ message: "channel not found" });
       }
-     console.log(req.body);
+    //  console.log(req.body);
       const isLiveUpdate=await this.interactor.onUpdateLiveHistoryEnded(req.body.payload.RoomId)
       if (!isLiveUpdate) {
         return res
@@ -205,9 +205,9 @@ export class LiveController {
     next: NextFunction
   ) => {
     try {
-      console.log("here");
+      // console.log("here");
       const liveHistory=await this.interactor.fetchAllLives(req.params.channelId)
-      console.log(liveHistory);
+      // console.log(liveHistory);
       if (!liveHistory) {
         return res
         .status(ResponseStatus.BadRequest)

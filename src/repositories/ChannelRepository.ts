@@ -160,7 +160,7 @@ export class channelRepository implements IChannelRepository {
       const totalcount = await ChannelMembershipModel.countDocuments({
         "members.channelId": new mongoose.Types.ObjectId(channelId),
       });
-      console.log("members", transformedMembers);
+      // console.log("members", transformedMembers);
       return { subscribedmembers: transformedMembers, totalcount: totalcount };
     } catch (error) {
       throw error;
