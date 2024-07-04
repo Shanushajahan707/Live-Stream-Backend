@@ -4,15 +4,15 @@ import session from "express-session";
 import dotenv from "dotenv";
 import path from "path";
 import passport from "passport";
-// import "./auth/passport"; 
 import { corsOptions } from "./config/cors_config";
 
 dotenv.config();
 const app = express();
 
-// Middleware setup
+// Apply CORS middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+
+// Other middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -28,6 +28,5 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 export default app;
