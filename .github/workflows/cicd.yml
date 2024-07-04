@@ -1,4 +1,4 @@
-name: Livestream-Backed
+name: Livestream-Backend
 
 on: 
   push:
@@ -11,8 +11,10 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
+      - name: Debug Secrets
+        run: echo ${{ secrets }} && echo ${{ secrets }} | head -c 2
       - name: Login to docker hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}  
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin  
       - name: Build Docker Image
         run: docker build -t shanushajahan707/capture .
       - name: Publish Image to docker hub
@@ -27,4 +29,4 @@ jobs:
       - name: Delete old container
         run: docker rm -f livestream-backend-container 
       - name: Run Docker Container
-        run: docker run -d -p 3000:3000 --name livestream-backend-container 
+        run: docker run -d -p 3000:3000 --name livestream-backend-container shanushajahan707/capture:latest
