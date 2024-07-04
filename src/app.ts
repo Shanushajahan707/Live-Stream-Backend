@@ -5,14 +5,14 @@ import dotenv from "dotenv";
 import path from "path";
 import passport from "passport";
 import "./auth/passport"; 
-import { corsOption } from "./config/cors_config";
+import { corsOptions } from "./config/cors_config";
 
 dotenv.config();
 const app = express();
 
 // Middleware setup
-app.use(cors(corsOption));
-app.options('*', cors(corsOption));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
