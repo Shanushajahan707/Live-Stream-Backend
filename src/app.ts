@@ -6,6 +6,7 @@ import path from "path";
 // import { Server as httpServer } from "http";
 import passport from "passport";
 import "./auth/passport"; 
+import { corsOption } from "./config/cors_config";
 // import { configureSocket } from "./socket/signellingServer";
 
 dotenv.config();
@@ -13,7 +14,7 @@ const app = express();
 // const server = new httpServer(app);
 
 // Middleware setup
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+app.use(cors(corsOption));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
