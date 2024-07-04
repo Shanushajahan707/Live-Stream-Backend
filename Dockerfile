@@ -11,7 +11,7 @@ COPY . .
 
 # Environment variables
 ENV PORT=3000
-ENV FRONTEND_URL=http://localhost:4200
+ENV FRONTEND_URL=http://localhost:4200/
 # ENV FRONTEND_URL=https://capturelive-shanushajahan707s-projects.vercel.app
 ENV MONGO_STR=mongodb+srv://livestreamhelperonline:EmYZWluSrmsAr7hn@live-stream.yeqrqfe.mongodb.net/Capture?retryWrites=true&w=majority&appName=LIve-stream
 ENV SECRET_LOGIN=loginkeysecret
