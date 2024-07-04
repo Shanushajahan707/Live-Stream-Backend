@@ -17,7 +17,7 @@ const interactor = new UserInteractor(repository);
 const controller = new UserController(interactor);
 
 
-router.get('/',(req,res)=>res.send('shanu hello'))
+router.get('/test',(req,res)=>res.send('shanu hello'))
 // Calls the onLogin method of the UserController instance to handle the login process.
 router.post("/loginuser", controller.onLogin.bind(controller));
 //forgot poassword route
