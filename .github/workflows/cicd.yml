@@ -1,12 +1,8 @@
-
-
 name: Livestream-Backed
-
 on: 
   push:
     branches:
        - last-week
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +12,14 @@ jobs:
       - name: Login to docker hub
         run: docker login -u shanushajahan707 -p shanu@255257  
       - name: Build Docker Image
-        run: docker build -t shanushajahan707/capture .
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          docker build \
+            --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+            --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+            -t shanushajahan707/capture .
       - name: Publish Image to docker hub
         run: docker push shanushajahan707/capture:latest
  
@@ -29,4 +32,4 @@ jobs:
       - name: Delete old container
         run: docker rm -f livestream-backend-container 
       - name: Run Docker Container
-        run: docker run -d -p 3000:3000 --name livestream-backend-container 
+        run: docker run -d -p 3000:3000 --name livestream-backend-container shanushajahan707/capture:latest
