@@ -1,28 +1,25 @@
-name: Livestream-Backend
+
+
+name: Livestream-Backed
 
 on: 
   push:
     branches:
-      - last-week
+       - last-week
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
-      - name: Debug Secrets
-        run: |
-          echo "DOCKER_USERNAME: shanushajahan707"
-          echo "DOCKER_PASSWORD: $(echo shanushajahan707 | head -c 5)*****"
+        uses: actions/checkout@v4
       - name: Login to docker hub
-        run: |
-          echo "shanushajahan707" | docker login -u "Shanu@8038319" --password-stdin
+        run: docker login -u "shanushajahan707" -p "Shanu@8038319"  
       - name: Build Docker Image
         run: docker build -t shanushajahan707/capture .
       - name: Publish Image to docker hub
         run: docker push shanushajahan707/capture:latest
-
+ 
   deploy:
     needs: build
     runs-on: self-hosted 
@@ -32,4 +29,4 @@ jobs:
       - name: Delete old container
         run: docker rm -f livestream-backend-container 
       - name: Run Docker Container
-        run: docker run -d -p 3000:3000 --name livestream-backend-container shanushajahan707/capture:latest
+        run: docker run -d -p 3000:3000 --name livestream-backend-container 
