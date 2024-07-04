@@ -17,8 +17,15 @@ export class UserController {
   constructor(interactor: IUserInteractor) {
     this._interactor = interactor;
   }
-  
+
   //logn funcitonalities and call the interactor
+  test = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.json({ message: "this is  the test url" });
+    } catch (error) {
+      next(error);
+    }
+  };
   onLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.body) {
@@ -496,33 +503,25 @@ export class UserController {
           .status(ResponseStatus.BadRequest)
           .json({ message: "Error while subscribe" });
       }
-      res
-        .status(ResponseStatus.Created)
-        .json({
-          message: "Subscription success",
-          isMember: true,
-          payment: true,
-        });
+      res.status(ResponseStatus.Created).json({
+        message: "Subscription success",
+        isMember: true,
+        payment: true,
+      });
     } catch (error) {
       next(error);
     }
   };
-  isTrailOver = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  isTrailOver = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { _id } = req.user as { _id: string };
-      const isTrailOver=await this._interactor.isTrailOver(_id)
+      const isTrailOver = await this._interactor.isTrailOver(_id);
       if (!isTrailOver) {
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: "Error check the trial" });
       }
-      res
-      .status(ResponseStatus.Created)
-      .json({
+      res.status(ResponseStatus.Created).json({
         message: "Subscription success",
         isTrailOver,
       });
