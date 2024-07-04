@@ -9,6 +9,7 @@ interface User {
 export function configureSocket(expressServer: httpServer) {
   const io = new SocketIOServer(expressServer, {
     cors: {
+      // origin: "https://capturelive-shanushajahan707s-projects.vercel.app/",
       origin: "http://localhost:4200",
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
       allowedHeaders: ["Content-Type"],

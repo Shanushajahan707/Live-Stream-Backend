@@ -1,0 +1,28 @@
+name: Livestream-Backed
+
+on:
+  push:
+    branches:
+      - last-week
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: action/checkout@v4
+      - name: Login to docker hub
+        run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
+      - name: Build Docker Image
+        run: docker build -t shanushajahan707/capture .
+      - name: Publish Image to docker hub
+        run: docker push shanushajahan707/capture:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull image from docker hub
+        run: docker pull shanushajahan707/capture:latest
+      - name: Run Docker Container
+        run: docker run -d -p 3000:3000 --name livestream-backend-container
