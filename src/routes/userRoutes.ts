@@ -16,6 +16,8 @@ const interactor = new UserInteractor(repository);
 // UserInteractor instance is injected into UserController to delegate business logic execution.
 const controller = new UserController(interactor);
 
+
+router.get('/',(req,res)=>res.send('shanu'))
 // Calls the onLogin method of the UserController instance to handle the login process.
 router.post("/loginuser", controller.onLogin.bind(controller));
 //forgot poassword route
