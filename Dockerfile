@@ -15,8 +15,8 @@ ENV SECRET_REFRESH=loginsecretrefresh
 ENV SECRET_OTP=otpvalue
 ENV PASSCODE=ilgzigbwolbtaxjr
 ENV EMAIL=livestreamhelperonline@gmail.com
-ENV CLIENT_ID=19030411926-mhr0sl935l3q1dlgqk98gdp9tjo8dnmk.apps.googleusercontent.com
-ENV CLIENT_SECRET=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
+ENV CLIENT_ID=19030411926-j4lu836h4o91t2f1j3mkpqanheh5kd9t.apps.googleusercontent.com
+ENV CLIENT_SECRET=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
 ENV S3_BUCKET=channelshorts
 ENV S3_REGION=ap-south-1
 ARG AWS_ACCESS_KEY_ID
