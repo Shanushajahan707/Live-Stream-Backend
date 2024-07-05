@@ -13,8 +13,8 @@ jobs:
         run: docker login -u shanushajahan707 -p shanu@255257  
       - name: Build Docker Image
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: AKIA2UC3BPM546VALAFT
+          AWS_SECRET_ACCESS_KEY: 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
         run: |
           docker build \
             --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \

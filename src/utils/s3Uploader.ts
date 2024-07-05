@@ -4,15 +4,15 @@ import { Upload } from "@aws-sdk/lib-storage";
 
  const s3config = new S3Client({
     credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY as string,
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string
     },
-    region: process.env.S3_REGION
+    region: "ap-south-1"
 })
 
 const uploadS3Video = async (file : Express.Multer.File)=>{
     const params = {
-        Bucket: process.env.S3_BUCKET,
+        Bucket: "channelshorts",
         Key: Date.now().toString() + '-' + file.originalname,
         Body: file.buffer,
         ContentType: file.mimetype,
