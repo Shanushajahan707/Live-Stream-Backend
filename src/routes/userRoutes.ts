@@ -4,7 +4,7 @@ import { UserInteractor } from "../interactors/UserInteractor";
 import passport from "passport";
 import authMiddleware from "../middleware/authMiddleware";
 import blockCheckMiddleware from "../middleware/blockMIddleware";
-import { UserController } from "../controllers/UserController";
+import { UserController } from "../controllers/user";
 
 const router = Router();
 

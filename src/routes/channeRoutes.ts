@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import authMiddleware from "../middleware/authMiddleware";
-import { ChannelController } from "../controllers/channelController";
+import { ChannelController } from "../controllers/channel";
 import { channelRepository } from "../repositories/ChannelRepository";
 import { channelInteractor } from "../interactors/ChannelInteractor";
 import { upload } from "../utils/imageMulter";
