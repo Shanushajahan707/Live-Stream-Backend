@@ -5,11 +5,10 @@ import dotenv from "dotenv";
 import path from "path";
 import passport from "passport";
 import { corsOptions } from "./config/cors_config";
-import { passportConfig } from "./auth/googlesetup"
+// import { passportConfig } from "./auth/googlesetup"
 
 dotenv.config();
 const app = express();
-console.log(passportConfig);
 // Apply CORS middleware
 app.use(cors(corsOptions));
 
