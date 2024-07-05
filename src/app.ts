@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Session middleware
 app.use(session({
-  secret: 'your-secret-key',
+  secret: 'your-secret-key-session',
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false }
