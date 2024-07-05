@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { AdminRepository } from "../repositories/AdminRepository";
 import { AdminInteractor } from "../interactors/AdminInteractor";
-import { AdminController } from "../controllers/adminController";
+import { AdminController } from "../controllers/AdminController";
 
 const router = Router();
 

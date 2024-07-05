@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { UserController } from "../controllers/userController";
 import { UserRepository } from "../repositories/UserRepository";
 import { UserInteractor } from "../interactors/UserInteractor";
 import passport from "passport";
 import authMiddleware from "../middleware/authMiddleware";
 import blockCheckMiddleware from "../middleware/blockMIddleware";
+import { UserController } from "../controllers/UserController";
+
 const router = Router();
 
 // Creating a new instance of UserRepository to handle data access operations for the User entity.
