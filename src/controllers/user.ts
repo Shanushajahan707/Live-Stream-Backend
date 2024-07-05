@@ -21,7 +21,7 @@ export class UserController {
   //logn funcitonalities and call the interactor
   test = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      res.json({ message: "this is  the test url" });
+      res.json({ message: "this is test url" });
     } catch (error) {
       next(error);
     }
