@@ -21,7 +21,7 @@ export const sendOtpEmail = async (
             <p>Dear User,</p>
             <p>Your One-Time Password (OTP) for authentication is:<h1> ${otp} </h1> </p>
             <p>Please click the button below to verify your account:</p>
-            <a href="http://localhost:4200/otp-verification" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">Verify Account</a>
+            <a href="https://capturelive-shanushajahan707s-projects.vercel.app/otp-verification" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">Verify Account</a>
             <div style="margin-top: 20px;">
               <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT38GdlfKO3i3cHMzxTvbK_ALOzkeiPpY7IgA&s" alt="Your Project Image" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
             </div>
