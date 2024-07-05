@@ -31,7 +31,7 @@ export class UserController {
       if (!req.body) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "No User Data Provided" });
+          .json({ message: "No User Data Provided!" });
       }
 
       const user = {
