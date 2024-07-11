@@ -118,7 +118,7 @@ export class LiveRepository implements ILiveRepository {
       if (!updatedLiveHistory) {
         throw new Error("LiveHistory not found");
       }
-      console.log('updated the user detail of the live');
+      // console.log('updated the user detail of the live');
       return updatedLiveHistory._id.toString();
     } catch (error) {
       throw error;
