@@ -249,7 +249,7 @@ export class ChannelController {
       if (!req.file || !req.file.mimetype.startsWith("video/mp4")) {
         return res
           .status(400)
-          .json({ message: "Invalid file type. Please upload a .mp4 file." });
+          .json({ message: "Invalid file type. Please upload a .mp4 file properly." });
       }
 
       const isUploaded = await this._interactor.uploadShort(req.file);
