@@ -8,6 +8,46 @@ import { ChannelMembershipModel } from "../model/chennelMembership";
 import { channelSubscriptionModel } from "../model/channelSubscription";
 
 export class channelRepository implements IChannelRepository {
+  GetToprTrendingChannels=async(): Promise<Channel[] | null> =>{
+   try {
+    const topChannels = await ChannelModel.aggregate([
+      {
+        $project: {
+          channelName: 1,
+          banner: 1,
+          followersCount: { $size: "$followers" }
+        }
+      },
+      { $match: { followersCount: { $gt: 1 } } },
+      { $sort: { followersCount: -1 } },
+      { $limit: 5 }
+    ]);
+
+    if (!topChannels || topChannels.length === 0) {
+      return null;
+    }
+    return topChannels;
+   } catch (error) {
+    throw error
+   }
+  }
+  getFullFollowChanneld=async(userid: string): Promise<string[] | null> =>{
+    try {
+      const userChannels = await ChannelModel.find({
+        "followers.userId": userid,
+      });
+
+      if (!userChannels || userChannels.length === 0) {
+        return null;
+      }
+
+      const channels: string[] = userChannels.map((doc) => doc._id.toString());
+
+      return channels;
+    } catch (error) {
+      throw error
+    }
+  }
   getExcelData = async (userId: string, startDate: string, endDate: string): Promise<FormattedChannelSubscriptionUser[] | null> => {
     try {
       const userChannel = await ChannelModel.findOne({ username: userId }).exec();

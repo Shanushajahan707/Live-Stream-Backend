@@ -194,6 +194,30 @@ export class ChannelController {
       next(error);
     }
   };
+  onGetFullFollowChannelId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { _id } = req.user as { _id: string };
+      // console.log(_id);
+      const followedChannels = await this._interactor.getFullFollowChanneld(
+        _id
+      );
+      if (!followedChannels) {
+        return res
+          .status(ResponseStatus.OK)
+          .json({ message: "Unable to fetch the channel" ,channel:['']});
+      }
+      res.status(ResponseStatus.Accepted).json({
+        message: "Fetched followed Channels",
+        channel: followedChannels,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
   onGetFollowChannel = async (
     req: Request,
     res: Response,
@@ -441,6 +465,25 @@ export class ChannelController {
       res.setHeader('Content-Disposition', 'attachment; filename=RevenueReport.xlsx');
       res.setHeader('Content-Type', 'application/octet-stream');
       res.send(Buffer.from(excelBuffer));
+    } catch (error) {
+      console.error("Server error:", error);
+      next(error);
+    }
+  };
+  GetTopTrendingChannels = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const topChannels=await this._interactor.GetToprTrendingChannels()
+      if(!topChannels){
+        return res.status(ResponseStatus.BadRequest).json({message:"Unable to fetch chart"})
+      }
+      console.log(topChannels);
+
+      res
+      .status(ResponseStatus.OK)
+      .json({
+        message: "Fetched the revueChart",
+        channel:topChannels
+      });
     } catch (error) {
       console.error("Server error:", error);
       next(error);

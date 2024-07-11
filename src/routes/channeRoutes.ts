@@ -52,6 +52,12 @@ router.get(
   controller.onGetFullFollowChannels.bind(controller)
 );
 router.get(
+  "/getfollowchannelid",
+  authMiddleware,
+  blockCheckMiddleware,
+  controller.onGetFullFollowChannelId.bind(controller)
+);
+router.get(
   "/getfollowchannel/:channelId",
   authMiddleware,
   blockCheckMiddleware,
@@ -109,6 +115,10 @@ router.get(
   authMiddleware,
   blockCheckMiddleware,
   controller.onFetchExcelData.bind(controller)
+);
+router.get(
+  "/getchannneltopchannel",
+  controller.GetTopTrendingChannels.bind(controller)
 );
 
 

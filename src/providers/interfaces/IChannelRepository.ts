@@ -17,6 +17,7 @@ export interface IChannelRepository {
   ): Promise<Channel | null>;
   isFollow(userid: string, channelDate: Channel): Promise<boolean>;
   getFullFollowChannels(userid: string): Promise<Channel[] | null>;
+  getFullFollowChanneld(userid: string): Promise<string[] | null>;
   getFollowChannel(channelId: string): Promise<Channel | null>;
   shortInDb(channelId: string, location: string): Promise<Channel | null>;
   updateViews(channelId: string, location: string): Promise<Channel | null>;
@@ -43,5 +44,6 @@ export interface IChannelRepository {
     userid: string
   ): Promise<{ monthlySubscription: { [key: string]: number } | null,totalAmount: number }>;
   getExcelData(userId:string,startDate:string,endDate:string):Promise<FormattedChannelSubscriptionUser[]|null>
+  GetToprTrendingChannels():Promise<Channel[]|null>
 
 }

@@ -17,6 +17,7 @@ export interface IChannelInteractor {
   ): Promise<Channel | null>;
   isFollow(userid: string, channelDate: Channel): Promise<boolean>;
   getFullFollowChannels(userid: string): Promise<Channel[] | null>;
+  getFullFollowChanneld(userid: string): Promise<string[] | null>;
   getFollowChannel(channelId: string): Promise<Channel | null>;
   uploadShort(file: Express.Multer.File): Promise<string>;
   shortInDb(channelId: string, location: string): Promise<Channel | null>;
@@ -44,4 +45,5 @@ export interface IChannelInteractor {
     userid: string
   ): Promise<{ monthlySubscription: { [key: string]: number } | null,totalAmount: number }>;
   getExcelData(userId:string,startDate:string,endDate:string):Promise<FormattedChannelSubscriptionUser[]|null>
+  GetToprTrendingChannels():Promise<Channel[]|null>
 }

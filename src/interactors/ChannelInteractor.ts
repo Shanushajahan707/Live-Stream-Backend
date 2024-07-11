@@ -9,6 +9,20 @@ export class channelInteractor implements IChannelInteractor {
   constructor(private repository: IChannelRepository) {
     this._repository = repository;
   }
+  GetToprTrendingChannels=async(): Promise<Channel[] | null> =>{
+    try {
+      return await this._repository.GetToprTrendingChannels()
+    } catch (error) {
+      throw error
+    }
+  }
+  getFullFollowChanneld=async(userid: string): Promise<string[] | null> =>{
+    try {
+      return await this._repository.getFullFollowChanneld(userid)
+    } catch (error) {
+      throw error
+    }
+  }
   getExcelData=async(userId:string,startDate: string, endDate: string): Promise<FormattedChannelSubscriptionUser[] | null> =>{
    try {
      return await this._repository.getExcelData(userId,startDate,endDate)
