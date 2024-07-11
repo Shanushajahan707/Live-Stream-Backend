@@ -18,7 +18,7 @@ export class channelRepository implements IChannelRepository {
           followersCount: { $size: "$followers" }
         }
       },
-      { $match: { followersCount: { $gt: 1 } } },
+      { $match: { followersCount: { $gte: 1 } } },
       { $sort: { followersCount: -1 } },
       { $limit: 5 }
     ]);

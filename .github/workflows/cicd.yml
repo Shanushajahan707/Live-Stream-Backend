@@ -30,6 +30,6 @@ jobs:
       - name: Pull image from docker hub
         run: docker pull shanushajahan707/capture:latest
       - name: Delete old container
-        run: docker rm -f livestream-backend-container 
+        run: docker rm -f livestream-backend-container:latest
       - name: Run Docker Container
         run: docker run -d -p 3000:3000 --name livestream-backend-container shanushajahan707/capture:latest
