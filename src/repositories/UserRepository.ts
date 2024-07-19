@@ -374,7 +374,7 @@ export class UserRepository implements IUserRepository {
       console.log("exisitng otp form the jwt", this._jwtotp);
       console.log("env value of otp is", process.env.SECRET_OTP);
       this._jwtotp = jwt.sign({ otp }, process.env.SECRET_OTP as string, {
-        expiresIn: "1m",
+        expiresIn: "2m",
       });
       const mailSent = await sendOtpEmail(email, otp);
       return mailSent;
