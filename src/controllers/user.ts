@@ -235,7 +235,7 @@ export class UserController {
       if (!isValidEmail(email)) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Invalid email format" });
+          .json({ message: "Invalid email format, please check !" });
       }
 
       if (!isValidPassword(password)) {
