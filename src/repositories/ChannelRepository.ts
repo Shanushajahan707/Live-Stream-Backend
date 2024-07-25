@@ -621,7 +621,7 @@ export class channelRepository implements IChannelRepository {
       { username: userid },
       {
         channelName: channelName,
-        banner: filePath ? filePath : "/images/channel-banner1.png",
+        banner: filePath,
       },
       { new: true }
     );

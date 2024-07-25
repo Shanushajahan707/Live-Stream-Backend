@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { IChannelInteractor } from "../providers/interfaces/IChannelInteractor";
 import { ResponseStatus } from "../constants/statusCodeEnums";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 
 export class ChannelController {
   private _interactor: IChannelInteractor;
@@ -38,7 +38,7 @@ export class ChannelController {
   };
   onEditChannel = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // console.log("the datas are ", req.body);
+      console.log("the datas are ", req.body);
       // console.log("the img are ", req.file?.filename);
       if (!req.body.channelName) {
         return res
@@ -47,12 +47,25 @@ export class ChannelController {
       }
       const { _id } = req.user as { _id: string };
 
-      const channelName: string = req.body.channelName;
-      const filePath: string | undefined = req.file?.filename;
+      let channelName = req.body.channelName;
+      let filePath: string | undefined = req.file?.filename;
       console.log(_id, channelName, filePath);
       const existingChannnel = await this._interactor.existingChannnel(
         channelName
       );
+
+      const channelData = await this._interactor.getChannel(_id);
+      if (!channelData) {
+        return console.log("channel data null");
+      }
+
+      if (channelName === 'null' || channelName =='' || filePath==='' || filePath =='undefined') {
+        console.log(channelName,'chanel name');
+        channelName = channelData.channelName as string;
+        filePath=channelData.banner as string
+      }
+      
+
       if (existingChannnel) {
         return res
           .status(ResponseStatus.NotFound)
@@ -61,7 +74,7 @@ export class ChannelController {
       const newChannelData = await this._interactor.editChannel(
         _id,
         channelName,
-        filePath ?? ""
+        filePath as string
       );
       // console.log("updaeted", newChannelData);
       if (newChannelData) {
@@ -208,7 +221,7 @@ export class ChannelController {
       if (!followedChannels) {
         return res
           .status(ResponseStatus.OK)
-          .json({ message: "Unable to fetch the channel" ,channel:['']});
+          .json({ message: "Unable to fetch the channel", channel: [""] });
       }
       res.status(ResponseStatus.Accepted).json({
         message: "Fetched followed Channels",
@@ -249,7 +262,9 @@ export class ChannelController {
       if (!req.file || !req.file.mimetype.startsWith("video/mp4")) {
         return res
           .status(400)
-          .json({ message: "Invalid file type. Please upload a .mp4 file properly." });
+          .json({
+            message: "Invalid file type. Please upload a .mp4 file properly.",
+          });
       }
 
       const isUploaded = await this._interactor.uploadShort(req.file);
@@ -396,13 +411,11 @@ export class ChannelController {
           .json({ message: "Can't fetch the members" });
       }
       // console.log("members", subscribedMembers);
-      res
-        .status(ResponseStatus.OK)
-        .json({
-          message: "Fetched the members",
-          members: subscribedMembers.subscribedmembers,
-          totalcount: subscribedMembers.totalcount,
-        });
+      res.status(ResponseStatus.OK).json({
+        message: "Fetched the members",
+        members: subscribedMembers.subscribedmembers,
+        totalcount: subscribedMembers.totalcount,
+      });
     } catch (error) {
       console.error("Server error:", error);
       next(error);
@@ -415,37 +428,43 @@ export class ChannelController {
   ) => {
     try {
       const { _id } = req.user as { _id: string };
-      const revenueChart=await this._interactor.fetRevenueChart(_id)
-      if(!revenueChart){
-        return res.status(ResponseStatus.BadRequest).json({message:"Unable to fetch chart"})
+      const revenueChart = await this._interactor.fetRevenueChart(_id);
+      if (!revenueChart) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Unable to fetch chart" });
       }
       // console.log(revenueChart);
 
-      res
-      .status(ResponseStatus.OK)
-      .json({
+      res.status(ResponseStatus.OK).json({
         message: "Fetched the revueChart",
         revenue: revenueChart.monthlySubscription,
-        totalAmount:revenueChart.totalAmount
+        totalAmount: revenueChart.totalAmount,
       });
     } catch (error) {
       console.error("Server error:", error);
       next(error);
     }
   };
-  onFetchExcelData = async (req: Request, res: Response, next: NextFunction) => {
+  onFetchExcelData = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { _id } = req.user as { _id: string };
       const startDate = req.query.startDate as string;
       const endDate = req.query.endDate as string;
-  
+
       const data = await this._interactor.getExcelData(_id, startDate, endDate);
-  
+
       if (!data) {
-        return res.status(ResponseStatus.BadRequest).json({ message: "Error in fetching Excel data" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Error in fetching Excel data" });
       }
-  
-      const formattedData = data.map(entry => ({
+
+      const formattedData = data.map((entry) => ({
         _id: entry._id,
         userId: entry.members.userId as string,
         userChannelId: entry.members.userChannelId as string,
@@ -454,35 +473,42 @@ export class ChannelController {
         paymentId: entry.members.paymentId,
         createdAt: entry.createdAt,
         endsIn: entry.endsIn,
-      }))
+      }));
       // console.log(formattedData);
       const worksheet = XLSX.utils.json_to_sheet(formattedData);
-      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+      const workbook = { Sheets: { data: worksheet }, SheetNames: ["data"] };
       const excelBuffer = XLSX.write(workbook, {
-        bookType: 'xlsx',
-        type: 'array',
+        bookType: "xlsx",
+        type: "array",
       });
-      res.setHeader('Content-Disposition', 'attachment; filename=RevenueReport.xlsx');
-      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=RevenueReport.xlsx"
+      );
+      res.setHeader("Content-Type", "application/octet-stream");
       res.send(Buffer.from(excelBuffer));
     } catch (error) {
       console.error("Server error:", error);
       next(error);
     }
   };
-  GetTopTrendingChannels = async (req: Request, res: Response, next: NextFunction) => {
+  GetTopTrendingChannels = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const topChannels=await this._interactor.GetToprTrendingChannels()
-      if(!topChannels){
-        return res.status(ResponseStatus.BadRequest).json({message:"Unable to fetch chart"})
+      const topChannels = await this._interactor.GetToprTrendingChannels();
+      if (!topChannels) {
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: "Unable to fetch chart" });
       }
       console.log(topChannels);
 
-      res
-      .status(ResponseStatus.OK)
-      .json({
+      res.status(ResponseStatus.OK).json({
         message: "Fetched the revueChart",
-        channel:topChannels
+        channel: topChannels,
       });
     } catch (error) {
       console.error("Server error:", error);
