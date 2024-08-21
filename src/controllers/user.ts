@@ -26,6 +26,13 @@ export class UserController {
       next(error);
     }
   };
+  ack = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.status(ResponseStatus.OK).json({ack:true})
+    } catch (error) {
+      next(error);
+    }
+  };
   onLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.body) {

@@ -19,6 +19,8 @@ const controller = new UserController(interactor);
 
 
 router.get('/test',controller.test.bind(controller))
+//ackowledment
+router.get('/ack',controller.ack.bind(controller))
 // Calls the onLogin method of the UserController instance to handle the login process.
 router.post("/loginuser", controller.onLogin.bind(controller));
 //forgot poassword route
