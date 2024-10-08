@@ -507,7 +507,7 @@ export class ChannelController {
       console.log(topChannels);
 
       res.status(ResponseStatus.OK).json({
-        message: "Fetched the revueChart",
+        message: "Fetched the topChannels",
         channel: topChannels,
       });
     } catch (error) {
