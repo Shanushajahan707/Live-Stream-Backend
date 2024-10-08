@@ -16,7 +16,7 @@ app.use('/', userRoutes);
 app.use('/admin',adminRoutes)
 app.use('/channel',channelRoutes)
 app.use('/live',liveRoutes)
-
+  
 
 const server=app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
