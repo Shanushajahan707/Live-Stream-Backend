@@ -9,7 +9,7 @@ interface User {
 export function configureSocket(expressServer: httpServer) {
   const io = new SocketIOServer(expressServer, {
     cors: {
-      origin: "https://capturelive-shanushajahan707s-projects.vercel.app",
+      origin: "https://capture-live.vercel.app",
       // origin: "http://localhost:4200",
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
       allowedHeaders: ["Content-Type"],
@@ -48,12 +48,12 @@ export function configureSocket(expressServer: httpServer) {
       const currentTime = new Date();
       const options = { timeZone: "Asia/Kolkata" };
       const localTimeString = currentTime.toLocaleString("en-US", options);
-    
+
       if (messageType === "audio") {
         const audioUrl = message; // Assuming the frontend sends the audio data as a base64 URL
         io.to(room).emit("chat message", {
           username,
-          message: '',
+          message: "",
           messageType,
           timestamp: localTimeString,
           audioUrl,
@@ -67,7 +67,7 @@ export function configureSocket(expressServer: httpServer) {
         });
       }
     });
-    
+
     socket.on("offer", (data) => {
       io.to(data.id).emit("offer", { id: socket.id, offer: data.offer });
     });
