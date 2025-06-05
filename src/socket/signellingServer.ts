@@ -153,7 +153,7 @@ export function configureSocket(expressServer: httpServer) {
   const io = new SocketIOServer(expressServer, {
     cors: {
         origin: "https://capture-live.vercel.app",
-//       origin: "http://localhost:4200",
+      // origin: "http://localhost:4200",
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
       allowedHeaders: ["Content-Type"],
       credentials: true,
