@@ -20,7 +20,7 @@ export class channelRepository implements IChannelRepository {
       },
       { $match: { followersCount: { $gte: 1 } } },
       { $sort: { followersCount: -1 } },
-      { $limit: 5 }
+      { $limit: 6 }
     ]);
 
     if (!topChannels || topChannels.length === 0) {
