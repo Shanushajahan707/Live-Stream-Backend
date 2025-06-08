@@ -514,6 +514,7 @@ export class UserController {
         message: "Subscription success",
         isMember: true,
         payment: true,
+        plan:subscribe,
       });
     } catch (error) {
       next(error);

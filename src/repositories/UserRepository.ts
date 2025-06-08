@@ -78,6 +78,9 @@ export class UserRepository implements IUserRepository {
       channel.lastDateOfLive = newLastDateOfLive;
       await channel.save();
 
+      console.log('channel old date of live ', channel.lastDateOfLive);
+      console.log('channel last date of live updated', newLastDateOfLive);
+
       const admin = await UserModel.findOne({ role: "Admin" });
       const adminWalletEntry = new AdminWalletModel({
         adminId: admin?._id,
