@@ -424,7 +424,7 @@ export class UserRepository implements IUserRepository {
       };
       // console.log("payload is", plainPayload);
       const token = jwt.sign(plainPayload, process.env.SECRET_LOGIN as string, {
-        expiresIn: "2d",
+        expiresIn: "1d",
       });
       return token;
     } catch (error) {
